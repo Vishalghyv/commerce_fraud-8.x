@@ -94,8 +94,8 @@ function commerce_fraud_rules_is_greylisted(stdClass $order) {
   if (!isset($order->data[COMMERCE_FRAUD_KEY])) {
     return FALSE;
   }
-  $greylist_lower_cap = variable_get('commerce_fraud_greylist_lower_cap', 10);
-  $greylist_upper_cap = variable_get('commerce_fraud_greylist_upper_cap', 20);
+  $greylist_lower_cap = variable_get('commerce_fraud_whitelist_upper_cap', 10);
+  $greylist_upper_cap = variable_get('commerce_fraud_blacklist_lower_cap', 20);
   $count = $order->data[COMMERCE_FRAUD_KEY];
   return $count >= $greylist_lower_cap && $count < $greylist_upper_cap;
 }

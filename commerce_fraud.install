@@ -7,7 +7,5 @@ function commerce_fraud_uninstall() {
   variable_del('commerce_fraud_store_threshold');
   variable_del('commerce_fraud_store_po_box_penalty');
   variable_del('commerce_fraud_whitelist_upper_cap');
-  variable_del('commerce_fraud_greylist_lower_cap');
-  variable_del('commerce_fraud_greylist_upper_cap');
   variable_del('commerce_fraud_blacklist_lower_cap');
 }
