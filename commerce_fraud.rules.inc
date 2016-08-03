@@ -16,8 +16,22 @@ function commerce_fraud_rules_event_info() {
     'group' => t('Commerce Fraud'),
     'variables' => array(
       'commerce_order' => array(
-        'label' => t('The commerce order'),
+        'label' => t('The Commerce Order'),
         'type' => 'commerce_order',
+      ),
+    ),
+  );
+  $events['commerce_fraud_calculating_fraud_score'] = array(
+    'label' => t('Calculating Fraud Score for Commerce Order'),
+    'group' => t('Commerce Fraud'),
+    'variables' => array(
+      'commerce_order' => array(
+        'label' => t('The Commerce Order'),
+        'type' => 'commerce_order',
+      ),
+      'fraud_score' => array(
+        'label' => t('The current Fraud score'),
+        'type' => 'integer',
       ),
     ),
   );
@@ -73,6 +87,20 @@ function commerce_fraud_rules_condition_info() {
     ),
   );
 
+  $conditions['commerce_fraud_country_matches_ip'] = array(
+    'label' => t('The given country matches the IP address'),
+    'group' => t('Commerce Fraud'),
+    'parameter' => array(
+      'country' => array(
+        'label' => t('The country'),
+        'type' => 'addressfield',
+      ),
+    ),
+    'callbacks' => array(
+      'execute' => 'commerce_fraud_country_matches_ip',
+    ),
+  );
+
   return $conditions;
 }
 
@@ -80,35 +108,53 @@ function commerce_fraud_rules_condition_info() {
  * Whitelist condition callback.
  */
 function commerce_fraud_rules_is_whitelisted(stdClass $order) {
-  if (!isset($order->data[COMMERCE_FRAUD_KEY])) {
+  if ($fraud_score = commerce_fraud_get_fraud_score_for_order_id($order->order_id)) {
+    $whitelist_cap = variable_get('commerce_fraud_whitelist_upper_cap', 10);
+    return $fraud_score < $whitelist_cap;
+  }
+  else {
     return TRUE;
   }
-  $whitelist_cap = variable_get('commerce_fraud_whitelist_upper_cap', 10);
-  return $order->data[COMMERCE_FRAUD_KEY] < $whitelist_cap;
 }
 
 /**
  * Greylist condition callback.
  */
 function commerce_fraud_rules_is_greylisted(stdClass $order) {
-  if (!isset($order->data[COMMERCE_FRAUD_KEY])) {
+  if ($fraud_score = commerce_fraud_get_fraud_score_for_order_id($order->order_id)) {
+    $greylist_lower_cap = variable_get('commerce_fraud_whitelist_upper_cap', 10);
+    $greylist_upper_cap = variable_get('commerce_fraud_blacklist_lower_cap', 20);
+    return $fraud_score >= $greylist_lower_cap && $fraud_score < $greylist_upper_cap;
+  }
+  else {
     return FALSE;
   }
-  $greylist_lower_cap = variable_get('commerce_fraud_whitelist_upper_cap', 10);
-  $greylist_upper_cap = variable_get('commerce_fraud_blacklist_lower_cap', 20);
-  $count = $order->data[COMMERCE_FRAUD_KEY];
-  return $count >= $greylist_lower_cap && $count < $greylist_upper_cap;
 }
 
 /**
  * Blacklist condition callback.
  */
 function commerce_fraud_rules_is_blacklisted(stdClass $order) {
-  if (!isset($order->data[COMMERCE_FRAUD_KEY])) {
+  if ($fraud_score = commerce_fraud_get_fraud_score_for_order_id($order->order_id)) {
+    $blacklist_cap = variable_get('commerce_fraud_blacklist_lower_cap', 20);
+    return $fraud_score >= $blacklist_cap;
+  }
+  else {
     return FALSE;
   }
-  $blacklist_cap = variable_get('commerce_fraud_blacklist_lower_cap', 20);
-  return $order->data[COMMERCE_FRAUD_KEY] >= $blacklist_cap;
+}
+
+/**
+ * Callback for the country matches ip condition.
+ */
+function commerce_fraud_country_matches_ip($address) {
+  $ip_address = ip_address();
+  $guessed_country = ip2country_get_country($ip_address);
+  if ($guessed_country === FALSE) {
+    return TRUE;
+  }
+
+  return $address['country'] === $guessed_country;
 }
 
 /**
@@ -188,11 +234,7 @@ function commerce_fraud_rules_action_info() {
  *   By how much to increase the fraud count.
  */
 function commerce_fraud_rules_increase_fraud_count(stdClass $order, $counter) {
-  if (!isset($order->data[COMMERCE_FRAUD_KEY])) {
-    $order->data[COMMERCE_FRAUD_KEY] = 0;
-  }
-  $order->data[COMMERCE_FRAUD_KEY] = $order->data[COMMERCE_FRAUD_KEY] + $counter;
-  rules_invoke_event('commerce_fraud_count_changed', $order);
+  commerce_fraud_increase_fraud_count($order, $counter);
 }
 
 /**
@@ -204,11 +246,7 @@ function commerce_fraud_rules_increase_fraud_count(stdClass $order, $counter) {
  *   By how much to decrease the fraud count.
  */
 function commerce_fraud_rules_decrease_fraud_count(stdClass $order, $counter) {
-  if (!isset($order->data[COMMERCE_FRAUD_KEY])) {
-    $order->data[COMMERCE_FRAUD_KEY] = 0;
-  }
-  $order->data[COMMERCE_FRAUD_KEY] = $order->data[COMMERCE_FRAUD_KEY] - $counter;
-  rules_invoke_event('commerce_fraud_count_changed', $order);
+  commerce_fraud_decrease_fraud_count($order, $counter);
 }
 
 /**
@@ -218,6 +256,5 @@ function commerce_fraud_rules_decrease_fraud_count(stdClass $order, $counter) {
  *   The current commerce_order.
  */
 function commerce_fraud_rules_reset_fraud_count(stdClass $order) {
-  $order->data[COMMERCE_FRAUD_KEY] = 0;
-  rules_invoke_event('commerce_fraud_count_changed', $order);
+  commerce_fraud_reset_fraud_count($order);
 }

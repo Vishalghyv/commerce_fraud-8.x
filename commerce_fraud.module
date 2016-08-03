@@ -5,8 +5,6 @@
  * commerce_fraud main file.
  */
 
-define('COMMERCE_FRAUD_KEY', 'commerce_fraud_count');
-
 /**
  * Implements hook_menu().
  */
@@ -28,13 +26,34 @@ function commerce_fraud_menu() {
 }
 
 /**
+ * Implements hook_commerce_order_status_info().
+ */
+function commerce_fraud_commerce_order_status_info() {
+  $order_statuses = array();
+
+  $order_statuses['fraudulent'] = array(
+    'name' => 'fraudulent',
+    'title' => t('Fraudulent'),
+    'state' => 'canceled',
+  );
+
+  $order_statuses['high_risk'] = array(
+    'name' => 'high_risk',
+    'title' => t('High Risk'),
+    'state' => 'pending',
+  );
+
+  return $order_statuses;
+}
+
+/**
  * Implements hook_permission().
  */
 function commerce_fraud_permission() {
   return array(
     'administer frauds' => array(
-      'title' => t('Administer frauds caps'),
-      'description' => t('Allows users to configure the caps defining frauds.'),
+      'title' => t('Administer Fraud Settings'),
+      'description' => t('Allows users to configure the Commerce Fraud settings.'),
       'restrict access' => TRUE,
     ),
   );
@@ -46,7 +65,7 @@ function commerce_fraud_permission() {
 function commerce_fraud_help($path) {
   switch ($path) {
     case 'admin/commerce/config/fraud':
-      return '<p>' . t('This page lets you define the lower and upper caps for each kind of fraud level.') . '</p>';
+      return '<p>' . t('This page lets you manage the Commerce Fraud settings.') . '</p>';
   }
 }
 
@@ -78,4 +97,151 @@ function commerce_fraud_views_data() {
   );
 
   return $data;
+}
+
+/**
+ * Implements hook_commerce_order_update().
+ */
+function commerce_fraud_commerce_order_update($order) {
+  if ($order->status == 'pending') {
+    commerce_fraud_update_score($order);
+  }
+}
+
+/**
+ * Updates the fraud score for order
+ * @param $order
+ */
+function commerce_fraud_update_score($order) {
+  $fraud_score = commerce_fraud_calculate_fraud_score($order);
+  $order_id = $order->order_id;
+  commerce_fraud_write_record(array(
+    'order_id' => $order_id,
+    'fraud_score' => $fraud_score,
+  ));
+  rules_invoke_event('commerce_fraud_count_changed', $order);
+}
+
+/**
+ * Calculates the risk score for an order.
+ *
+ * @param $order
+ *   The Order to calculate
+ *
+ * @return int
+ */
+function commerce_fraud_calculate_fraud_score($order) {
+  $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
+  $fraud_score = 0;
+
+  $order_total = commerce_currency_amount_to_decimal($order_wrapper->commerce_order_total->value()['amount'], $order_wrapper->commerce_order_total->value()['currency_code']);
+  if ($order_total > variable_get('commerce_fraud_order_total_threshold')) {
+    $fraud_score += variable_get('commerce_fraud_order_total_penalty');
+  }
+
+  //Calculate the post office box risk
+  if (commerce_fraud_order_has_pobox($order_wrapper)) {
+    $fraud_score += variable_get('commerce_fraud_po_box_penalty');
+  }
+
+  if (count($order_wrapper->commerce_line_items) > variable_get('commerce_fraud_order_item_count_threshold')) {
+    $fraud_score += variable_get('commerce_fraud_order_item_count_penalty');
+  }
+
+  // Allow other modules to modify fraud score
+  // todo: maybe change this to a hook??
+  rules_invoke_event('commerce_fraud_calculating_fraud_score', $order, $fraud_score);
+
+  return $fraud_score;
+}
+
+/**
+ * Checks the street address for a PO Box.
+ *
+ * @param $order_wrapper
+ * @return bool
+ */
+function commerce_fraud_order_has_pobox($order_wrapper) {
+  $address = $order_wrapper->commerce_customer_shipping->commerce_customer_address->thoroughfare->value();
+  return preg_match("/(p(.*)?o(.*?)?)(\s+)?(bo?x)?(\s+)?[#]?(\d+)?/i", $address);
+}
+
+/**
+ * Returns the current fraud score for order id.
+ *
+ * @param $order_id
+ *
+ * @return int
+ */
+function commerce_fraud_get_fraud_score_for_order_id($order_id) {
+  return db_select('commerce_fraud_fraud_score', 'f')
+    ->fields('f', array('fraud_score'))
+    ->condition('order_id', $order_id)
+    ->execute()
+    ->fetchField();
+}
+
+/**
+ * Increases the fraud count of an order.
+ *
+ * @param stdClass $order
+ *   The current commerce_order.
+ * @param integer $counter
+ *   By how much to increase the fraud count.
+ */
+function commerce_fraud_increase_fraud_count(stdClass $order, $counter) {
+  $order_id = $order->order_id;
+  $fraud_score = commerce_fraud_get_fraud_score_for_order_id($order_id);
+  $fraud_score += $counter;
+  commerce_fraud_write_record(array(
+    'order_id' => $order_id,
+    'fraud_score' => $fraud_score,
+  ));
+  rules_invoke_event('commerce_fraud_count_changed', $order);
+}
+
+/**
+ * Decreases the fraud count of an order.
+ *
+ * @param stdClass $order
+ *   The current commerce_order.
+ * @param integer $counter
+ *   By how much to increase the fraud count.
+ */
+function commerce_fraud_decrease_fraud_count(stdClass $order, $counter) {
+  $order_id = $order->order_id;
+  $fraud_score = commerce_fraud_get_fraud_score_for_order_id($order_id);
+  $fraud_score -= $counter;
+  commerce_fraud_write_record(array(
+    'order_id' => $order_id,
+    'fraud_score' => $fraud_score,
+  ));
+  rules_invoke_event('commerce_fraud_count_changed', $order);
+}
+
+/**
+ * Reset the fraud count of an order.
+ *
+ * @param stdClass $order
+ *   The current commerce_order.
+ */
+function commerce_fraud_reset_fraud_count(stdClass $order) {
+  commerce_fraud_write_record(array(
+    'order_id' => $order->order_id,
+    'fraud_score' => 0,
+  ));
+  rules_invoke_event('commerce_fraud_count_changed', $order);
+}
+
+/**
+ * Updates or inserts fraud_score for order id.
+ *
+ * @param array $record
+ *   Must be an array with two keys: order_id and fraud_score
+ */
+function commerce_fraud_write_record(array $record) {
+  db_merge('commerce_fraud_fraud_score')
+    ->key(array('order_id' => $record['order_id']))
+    ->fields($record)
+    ->execute();
 }
