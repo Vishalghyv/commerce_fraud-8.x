@@ -80,59 +80,27 @@ function commerce_fraud_views_api() {
 }
 
 /**
- * Implements hook_commerce_order_update().
+ * Callback for last order.
  */
-function commerce_fraud_commerce_order_update($order) {
-  if ($order->status == 'pending') {
-    commerce_fraud_update_score($order);
-  }
+function commerce_fraud_last_order($order, $minutes, $order_status = 'completed') {
+  // Look for {users} orders created within {$time_elapsed} minutes
+  $query = db_select('uc_orders', 'u')
+    ->fields('u', array('order_id'))
+    ->condition('uid', $order->uid)
+    ->condition('order_status', $order_status)
+    ->condition('created', time() - ($minutes * 60), '>=');
+
+  return !empty($query->execute()->fetchAssoc());
 }
 
 /**
- * Updates the fraud score for order
- * @param $order
+ * Returns a timestamp matching x days before today.
  */
-function commerce_fraud_update_score($order) {
-  $fraud_score = commerce_fraud_calculate_fraud_score($order);
-  $order_id = $order->order_id;
-  commerce_fraud_write_record(array(
-    'order_id' => $order_id,
-    'fraud_score' => $fraud_score,
-  ));
-  rules_invoke_event('commerce_fraud_count_changed', $order);
-}
+function commerce_fraud_timestamp_from_minutes($minutes) {
+  $date = new DateTimeImmutable();
+  $date = $date->modify('- ' . $minutes . ' minutes');
 
-/**
- * Calculates the risk score for an order.
- *
- * @param $order
- *   The Order to calculate
- *
- * @return int
- */
-function commerce_fraud_calculate_fraud_score($order) {
-  $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
-  $fraud_score = 0;
-
-  $order_total = commerce_currency_amount_to_decimal($order_wrapper->commerce_order_total->value()['amount'], $order_wrapper->commerce_order_total->value()['currency_code']);
-  if ($order_total > variable_get('commerce_fraud_order_total_threshold')) {
-    $fraud_score += variable_get('commerce_fraud_order_total_penalty');
-  }
-
-  //Calculate the post office box risk
-  if (commerce_fraud_order_has_pobox($order_wrapper)) {
-    $fraud_score += variable_get('commerce_fraud_po_box_penalty');
-  }
-
-  if (count($order_wrapper->commerce_line_items) > variable_get('commerce_fraud_order_item_count_threshold')) {
-    $fraud_score += variable_get('commerce_fraud_order_item_count_penalty');
-  }
-
-  // Allow other modules to modify fraud score
-  // todo: maybe change this to a hook??
-  rules_invoke_event('commerce_fraud_calculating_fraud_score', $order, $fraud_score);
-
-  return $fraud_score;
+  return $date->getTimestamp();
 }
 
 /**
@@ -143,6 +111,7 @@ function commerce_fraud_calculate_fraud_score($order) {
  */
 function commerce_fraud_order_has_pobox($order_wrapper) {
   $address = $order_wrapper->commerce_customer_shipping->commerce_customer_address->thoroughfare->value();
+
   return preg_match("/(p(.*)?o(.*?)?)(\s+)?(bo?x)?(\s+)?[#]?(\d+)?/i", $address);
 }
 
@@ -224,4 +193,69 @@ function commerce_fraud_write_record(array $record) {
     ->key(array('order_id' => $record['order_id']))
     ->fields($record)
     ->execute();
+}
+
+
+/**
+ * Whitelist condition callback.
+ */
+function commerce_fraud_is_whitelisted($order) {
+  if ($fraud_score = commerce_fraud_get_fraud_score_for_order_id($order->order_id)) {
+    $whitelist_cap = variable_get('commerce_fraud_greylist_cap', 10);
+
+    return $fraud_score < $whitelist_cap;
+  }
+  else {
+    return TRUE;
+  }
+}
+
+/**
+ * Greylist condition callback.
+ */
+function commerce_fraud_is_greylisted($order) {
+  if ($fraud_score = commerce_fraud_get_fraud_score_for_order_id($order->order_id)) {
+    $greylist_lower_cap = variable_get('commerce_fraud_greylist_cap', 10);
+    $greylist_upper_cap = variable_get('commerce_fraud_blacklist_cap', 20);
+
+    return $fraud_score >= $greylist_lower_cap && $fraud_score < $greylist_upper_cap;
+  }
+  else {
+    return FALSE;
+  }
+}
+
+/**
+ * Blacklist condition callback.
+ */
+function commerce_fraud_is_blacklisted($order) {
+  if ($fraud_score = commerce_fraud_get_fraud_score_for_order_id($order->order_id)) {
+    $blacklist_cap = variable_get('commerce_fraud_blacklist_cap', 20);
+
+    return $fraud_score >= $blacklist_cap;
+  }
+  else {
+    return FALSE;
+  }
+}
+
+/**
+ *
+ */
+function commerce_order_has_po_box($order) {
+  $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
+  $shipping_address = $order_wrapper->commerce_customer_shipping->commerce_customer_address;
+  return preg_match("/(p(.*)?o(.*?)?)(\s+)?(bo?x)?(\s+)?[#]?(\d+)?/i", $shipping_address->thoroughfare->value());
+}
+
+
+/**
+ * @return array
+ */
+function commerce_order_condition_fraud_level_operator_options() {
+  return array(
+    'commerce_fraud_is_whitelisted' => 'Whitelisted',
+    'commerce_fraud_is_greylisted' => 'Greylisted',
+    'commerce_fraud_is_blacklisted' => 'Blacklisted',
+  );
 }

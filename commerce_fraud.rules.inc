@@ -21,20 +21,6 @@ function commerce_fraud_rules_event_info() {
       ),
     ),
   );
-  $events['commerce_fraud_calculating_fraud_score'] = array(
-    'label' => t('Calculating Fraud Score for Commerce Order'),
-    'group' => t('Commerce Fraud'),
-    'variables' => array(
-      'commerce_order' => array(
-        'label' => t('The Commerce Order'),
-        'type' => 'commerce_order',
-      ),
-      'fraud_score' => array(
-        'label' => t('The current Fraud score'),
-        'type' => 'integer',
-      ),
-    ),
-  );
 
   return $events;
 }
@@ -87,8 +73,41 @@ function commerce_fraud_rules_condition_info() {
     ),
   );
 
+  $conditions['commerce_fraud_compare_fraud_level'] = array(
+    'label' => t('Compare an order\'s fraud level'),
+    'group' => t('Commerce Fraud'),
+    'parameter' => array(
+      'commerce_order' => array(
+        'type' => 'commerce_order',
+        'label' => t('Order'),
+      ),
+      'commerce_fraud_level_function' => array(
+        'type' => 'text',
+        'label' => t('Operator'),
+        'options list' => 'commerce_order_condition_fraud_level_operator_options',
+      ),
+    ),
+    'callbacks' => array(
+      'execute' => 'commerce_fraud_rules_compare_fraud_level',
+    ),
+  );
+
+  $conditions['commerce_fraud_has_po_box'] = array(
+    'label' => t('Order Shipping Address has PO Box'),
+    'group' => t('Commerce Fraud'),
+    'parameter' => array(
+      'commerce_order' => array(
+        'label' => t('The commerce order'),
+        'type' => 'commerce_order',
+      ),
+    ),
+    'callbacks' => array(
+      'execute' => 'commerce_fraud_rules_has_po_box',
+    ),
+  );
+
   $conditions['commerce_fraud_country_matches_ip'] = array(
-    'label' => t('The given country matches the IP address'),
+    'label' => t('The given country matches the users IP address'),
     'group' => t('Commerce Fraud'),
     'parameter' => array(
       'country' => array(
@@ -97,7 +116,40 @@ function commerce_fraud_rules_condition_info() {
       ),
     ),
     'callbacks' => array(
-      'execute' => 'commerce_fraud_country_matches_ip',
+      'execute' => 'commerce_fraud_rules_country_matches_ip',
+    ),
+  );
+
+  $conditions['commerce_fraud_user_ip_in_country'] = array(
+    'label' => t('The users IP address is in specified countries'),
+    'group' => t('Commerce Fraud'),
+    'parameter' => array(
+      'countries' => array(
+        'type' => 'text',
+        'label' => t('Countries'),
+        'description' => t('Two character Country Codes'),
+      ),
+    ),
+    'callbacks' => array(
+      'execute' => 'commerce_fraud_rules_user_ip_in_country',
+    ),
+  );
+
+  $conditions['commerce_fraud_last_order'] = array(
+    'label' => t('Last order is within X minutes'),
+    'group' => t('Commerce Fraud'),
+    'parameter' => array(
+      'commerce_order' => array(
+        'label' => t('The Current Commerce Order'),
+        'type' => 'commerce_order',
+      ),
+      'minutes' => array(
+        'label' => t('Number of Minutes'),
+        'type' => 'integer',
+      ),
+    ),
+    'callbacks' => array(
+      'execute' => 'commerce_fraud_rules_last_order',
     ),
   );
 
@@ -107,47 +159,42 @@ function commerce_fraud_rules_condition_info() {
 /**
  * Whitelist condition callback.
  */
-function commerce_fraud_rules_is_whitelisted(stdClass $order) {
-  if ($fraud_score = commerce_fraud_get_fraud_score_for_order_id($order->order_id)) {
-    $whitelist_cap = variable_get('commerce_fraud_whitelist_upper_cap', 10);
-    return $fraud_score < $whitelist_cap;
-  }
-  else {
-    return TRUE;
-  }
+function commerce_fraud_rules_is_whitelisted($order) {
+  return commerce_fraud_is_whitelisted($order);
 }
 
 /**
  * Greylist condition callback.
  */
-function commerce_fraud_rules_is_greylisted(stdClass $order) {
-  if ($fraud_score = commerce_fraud_get_fraud_score_for_order_id($order->order_id)) {
-    $greylist_lower_cap = variable_get('commerce_fraud_whitelist_upper_cap', 10);
-    $greylist_upper_cap = variable_get('commerce_fraud_blacklist_lower_cap', 20);
-    return $fraud_score >= $greylist_lower_cap && $fraud_score < $greylist_upper_cap;
-  }
-  else {
-    return FALSE;
-  }
+function commerce_fraud_rules_is_greylisted($order) {
+  return commerce_fraud_is_greylisted($order);
 }
 
 /**
  * Blacklist condition callback.
  */
-function commerce_fraud_rules_is_blacklisted(stdClass $order) {
-  if ($fraud_score = commerce_fraud_get_fraud_score_for_order_id($order->order_id)) {
-    $blacklist_cap = variable_get('commerce_fraud_blacklist_lower_cap', 20);
-    return $fraud_score >= $blacklist_cap;
-  }
-  else {
-    return FALSE;
-  }
+function commerce_fraud_rules_is_blacklisted($order) {
+  return commerce_fraud_is_blacklisted($order);
+}
+
+/**
+ * Fraud level condition callback.
+ */
+function commerce_fraud_rules_compare_fraud_level($order, $fn) {
+  return $fn($order);
+}
+
+/**
+ * PO Box condition callback.
+ */
+function commerce_fraud_rules_has_po_box($order) {
+  return commerce_order_has_po_box($order);
 }
 
 /**
  * Callback for the country matches ip condition.
  */
-function commerce_fraud_country_matches_ip($address) {
+function commerce_fraud_rules_country_matches_ip($address) {
   $ip_address = ip_address();
   $guessed_country = ip2country_get_country($ip_address);
   if ($guessed_country === FALSE) {
@@ -155,6 +202,26 @@ function commerce_fraud_country_matches_ip($address) {
   }
 
   return $address['country'] === $guessed_country;
+}
+
+/**
+ * Callback for the user ip in countries condition.
+ */
+function commerce_fraud_rules_user_ip_in_country($countries) {
+  $ip_address = ip_address();
+  $guessed_country = ip2country_get_country($ip_address);
+  if ($guessed_country === FALSE) {
+    return TRUE;
+  }
+
+  return strpos($countries, $guessed_country) !== FALSE;
+}
+
+/**
+ *  Callback for last order condition.
+ */
+function commerce_fraud_rules_last_order($order, $minutes) {
+  return commerce_fraud_last_order($order, $minutes);
 }
 
 /**
