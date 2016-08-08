@@ -1,21 +1,32 @@
 # commerce_fraud
 
-This module provides a framework to detect potentially fraudulous
+This module provides a framework to detect potentially fraudulent
 orders and act on this.
 
 This module provides:
 
-- 1 rules event: "Fraud count changed"
-- 3 rules conditions:
+- 1 Rules event: "Fraud count changed"
+- 3 Rules conditions:
     - Order is whitelisted
     - Order is greylisted
     - Order is blacklisted
-- 3 rules actions:
+    - Order has PO Box
+    - The given country matches the users IP address
+    - The users IP address is in specified countries
+    - Last order is within X minutes
+- 3 Rules actions:
     - Increase the fraud count
     - Decrease the fraud count
     - Reset the fraud count
+- 6 Default Rules:
+    - Change order status depending on Fraud level
+    - Increase Fraud Score if Order has X products
+    - Increase Fraud Score if User IP in Selected Countries (must have `ip2country` module installed)
+    - Increase Fraud Score to Orders with PO Box
+    - Increase Fraud Score to expensive Orders
+    - Increase Fraud Score to Orders placed within X minutes
 
-The rules actions will set a counter on the provided
+The Rules actions will increase the fraud score on the provided
 `commerce_order`. This counter is an integer that the "Reset the fraud
 count" action sets back to 0. The "Increase the fraud count" and
 "Decrease the fraud count" actions will increase or decrease this
@@ -27,15 +38,16 @@ is called.
 The limits used by the 3 conditions are configurable in
 /admin/commerce/config/fraud. By default, they are:
 
-- An order is whitelisted if the fraud count is <10
-- An order is greylisted if the fraud count is 10 <= x < 20
-- An order is blacklisted if the fraud count is >=20
+- An order is whitelisted if the fraud count is < 10
+- An order is blacklisted if the fraud count is >= 20  
+- An order is greylisted if it's between 10 and 20
 
-The `commerce_fraud_examples` module gives some examples on what kind
-of rules can be used.
+This module provides some default rules that can be turned on to start 
+keeping track of potentially fraudulent orders.
 
-Sponsored by [Skilld.fr][0] and developed by [Commerce Guys][1].
+Developed by [Acro Media Inc][0], Sponsored by [Skilld.fr][1] and also developed by [Commerce Guys][2].
 
 
-  [0]: http://www.skilld.fr
-  [1]: https://commerceguys.com
+  [0]: http://www.acromediainc.com
+  [1]: http://www.skilld.fr
+  [2]: https://commerceguys.com
