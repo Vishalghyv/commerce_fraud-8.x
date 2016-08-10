@@ -84,10 +84,10 @@ function commerce_fraud_views_api() {
  */
 function commerce_fraud_last_order($order, $minutes, $order_status = 'completed') {
   // Look for {users} orders created within {$time_elapsed} minutes
-  $query = db_select('uc_orders', 'u')
-    ->fields('u', array('order_id'))
+  $query = db_select('commerce_order', 'o')
+    ->fields('o', array('order_id'))
     ->condition('uid', $order->uid)
-    ->condition('order_status', $order_status)
+    ->condition('status', $order_status)
     ->condition('created', time() - ($minutes * 60), '>=');
 
   return !empty($query->execute()->fetchAssoc());
