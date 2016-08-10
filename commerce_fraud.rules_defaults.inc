@@ -87,10 +87,8 @@ function commerce_fraud_default_rules_configuration() {
       'first_price:select' => 'commerce-order:commerce-order-total',
       'operator' => '>',
       'second_price' => array(
-        'value' => array(
-          'amount' => 50000,
-          'currency_code' => commerce_default_currency(),
-        ),
+        'amount' => 50000,
+        'currency_code' => commerce_default_currency(),
       ),
     ))
     ->action('commerce_fraud_increase_fraud_count', array(
