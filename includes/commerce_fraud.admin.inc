@@ -22,7 +22,7 @@ function commerce_fraud_admin_settings() {
     '#type' => 'textfield',
     '#title' => t('Greylist cap'),
     '#description' => t('If an order has a fraud score greater than the number specified, it will be considered greylisted.'),
-    '#default_value' => variable_get('commerce_fraud_whitelist_upper_cap', 10),
+    '#default_value' => variable_get('commerce_fraud_greylist_cap', 10),
     '#element_validate' => array('element_validate_integer'),
   );
 
@@ -30,7 +30,7 @@ function commerce_fraud_admin_settings() {
     '#type' => 'textfield',
     '#title' => t('Blacklist cap'),
     '#description' => t('If an order has a fraud score greater than the number specified, it will be considered blacklisted.'),
-    '#default_value' => variable_get('commerce_fraud_blacklist_lower_cap', 20),
+    '#default_value' => variable_get('commerce_fraud_blacklist_cap', 20),
     '#element_validate' => array('element_validate_integer'),
   );
 
