@@ -1,7 +1,12 @@
 <?php
 
 /**
- * Implements hook_schema
+ * @file
+ * Commerce Fraud module install file.
+ */
+
+/**
+ * Implements hook_schema().
  */
 function commerce_fraud_schema() {
   $schema = array();

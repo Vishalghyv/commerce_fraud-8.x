@@ -2,7 +2,7 @@
 
 /**
  * @file
- * commerce_fraud custom rules.
+ * Commerce Fraud custom rules.
  */
 
 /**
@@ -31,50 +31,8 @@ function commerce_fraud_rules_event_info() {
 function commerce_fraud_rules_condition_info() {
   $conditions = array();
 
-  $conditions['commerce_fraud_is_whitelisted'] = array(
-    'label' => t('Order is whitelisted'),
-    'group' => t('Commerce Fraud'),
-    'parameter' => array(
-      'commerce_order' => array(
-        'label' => t('The commerce order'),
-        'type' => 'commerce_order',
-      ),
-    ),
-    'callbacks' => array(
-      'execute' => 'commerce_fraud_rules_is_whitelisted',
-    ),
-  );
-
-  $conditions['commerce_fraud_is_greylisted'] = array(
-    'label' => t('Order is greylisted'),
-    'group' => t('Commerce Fraud'),
-    'parameter' => array(
-      'commerce_order' => array(
-        'label' => t('The commerce order'),
-        'type' => 'commerce_order',
-      ),
-    ),
-    'callbacks' => array(
-      'execute' => 'commerce_fraud_rules_is_greylisted',
-    ),
-  );
-
-  $conditions['commerce_fraud_is_blacklisted'] = array(
-    'label' => t('Order is blacklisted'),
-    'group' => t('Commerce Fraud'),
-    'parameter' => array(
-      'commerce_order' => array(
-        'label' => t('The commerce order'),
-        'type' => 'commerce_order',
-      ),
-    ),
-    'callbacks' => array(
-      'execute' => 'commerce_fraud_rules_is_blacklisted',
-    ),
-  );
-
   $conditions['commerce_fraud_compare_fraud_level'] = array(
-    'label' => t('Compare an order\'s fraud level'),
+    'label' => t('Order has fraud level'),
     'group' => t('Commerce Fraud'),
     'parameter' => array(
       'commerce_order' => array(
@@ -93,7 +51,7 @@ function commerce_fraud_rules_condition_info() {
   );
 
   $conditions['commerce_fraud_has_po_box'] = array(
-    'label' => t('Order Shipping Address has PO Box'),
+    'label' => t('Order shipping address has po box'),
     'group' => t('Commerce Fraud'),
     'parameter' => array(
       'commerce_order' => array(
@@ -136,7 +94,7 @@ function commerce_fraud_rules_condition_info() {
   );
 
   $conditions['commerce_fraud_last_order'] = array(
-    'label' => t('Last order is within x minutes'),
+    'label' => t('Order placed within x minutes from most recent order'),
     'group' => t('Commerce Fraud'),
     'parameter' => array(
       'commerce_order' => array(
@@ -163,6 +121,10 @@ function commerce_fraud_rules_condition_info() {
 
 /**
  * Whitelist condition callback.
+ *
+ * @param $order
+ *
+ * @return bool
  */
 function commerce_fraud_rules_is_whitelisted($order) {
   return commerce_fraud_is_whitelisted($order);
@@ -170,6 +132,10 @@ function commerce_fraud_rules_is_whitelisted($order) {
 
 /**
  * Greylist condition callback.
+ *
+ * @param $order
+ *
+ * @return bool
  */
 function commerce_fraud_rules_is_greylisted($order) {
   return commerce_fraud_is_greylisted($order);
@@ -177,6 +143,10 @@ function commerce_fraud_rules_is_greylisted($order) {
 
 /**
  * Blacklist condition callback.
+ *
+ * @param $order
+ *
+ * @return bool
  */
 function commerce_fraud_rules_is_blacklisted($order) {
   return commerce_fraud_is_blacklisted($order);
@@ -184,6 +154,11 @@ function commerce_fraud_rules_is_blacklisted($order) {
 
 /**
  * Fraud level condition callback.
+ *
+ * @param $order
+ * @param $fn
+ *
+ * @return mixed
  */
 function commerce_fraud_rules_compare_fraud_level($order, $fn) {
   return $fn($order);
@@ -191,13 +166,21 @@ function commerce_fraud_rules_compare_fraud_level($order, $fn) {
 
 /**
  * PO Box condition callback.
+ *
+ * @param $order
+ *
+ * @return bool
  */
 function commerce_fraud_rules_has_po_box($order) {
-  return commerce_order_has_po_box($order);
+  return commerce_fraud_order_has_pobox($order);
 }
 
 /**
  * Callback for the country matches ip condition.
+ *
+ * @param $address
+ *
+ * @return bool
  */
 function commerce_fraud_rules_country_matches_ip($address) {
   $ip_address = ip_address();
@@ -211,6 +194,10 @@ function commerce_fraud_rules_country_matches_ip($address) {
 
 /**
  * Callback for the user ip in countries condition.
+ *
+ * @param $countries
+ *
+ * @return bool
  */
 function commerce_fraud_rules_user_ip_in_country($countries) {
   $ip_address = ip_address();
@@ -223,7 +210,7 @@ function commerce_fraud_rules_user_ip_in_country($countries) {
 }
 
 /**
- *  Callback for last order condition.
+ * Callback for last order condition.
  *
  * @param $order
  * @param $minutes
@@ -308,7 +295,7 @@ function commerce_fraud_rules_action_info() {
  *
  * @param stdClass $order
  *   The current commerce_order.
- * @param integer $counter
+ * @param int $counter
  *   By how much to increase the fraud count.
  */
 function commerce_fraud_rules_increase_fraud_count(stdClass $order, $counter) {
@@ -320,7 +307,7 @@ function commerce_fraud_rules_increase_fraud_count(stdClass $order, $counter) {
  *
  * @param stdClass $order
  *   The current commerce_order.
- * @param integer $counter
+ * @param int $counter
  *   By how much to decrease the fraud count.
  */
 function commerce_fraud_rules_decrease_fraud_count(stdClass $order, $counter) {

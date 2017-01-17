@@ -6,14 +6,12 @@ orders and act on this.
 This module provides:
 
 - 1 Rules event: "Fraud count changed"
-- 3 Rules conditions:
-    - Order is whitelisted
-    - Order is greylisted
-    - Order is blacklisted
+- 5 Rules conditions:
+    - Order has fraud level
     - Order has PO Box
     - The given country matches the users IP address
     - The users IP address is in specified countries
-    - Last order is within X minutes
+    - Order placed within x minutes from most recent order
 - 3 Rules actions:
     - Increase the fraud count
     - Decrease the fraud count
@@ -22,9 +20,9 @@ This module provides:
     - Change order status depending on Fraud level
     - Increase Fraud Score if Order has X products
     - Increase Fraud Score if User IP in Selected Countries (must have `ip2country` module installed)
-    - Increase Fraud Score to Orders with PO Box
-    - Increase Fraud Score to expensive Orders
-    - Increase Fraud Score to Orders placed within X minutes
+    - Increase Fraud Score for Orders with PO Box
+    - Increase Fraud Score for expensive Orders
+    - Increase Fraud Score for Orders placed within X minutes
 
 The Rules actions will increase the fraud score on the provided
 `commerce_order`. This counter is an integer that the "Reset the fraud

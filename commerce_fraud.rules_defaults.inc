@@ -12,7 +12,7 @@ function commerce_fraud_default_rules_configuration() {
   $rules = array();
 
   $rule = rules_reaction_rule();
-  $rule->label = t('Change order status depending on Fraud level');
+  $rule->label = t('Change order status depending on fraud level');
   $rule->tags = array('Commerce Fraud');
   $rule->weight = 100;
   $rule->active = FALSE;
@@ -29,7 +29,7 @@ function commerce_fraud_default_rules_configuration() {
   $rules['commerce_fraud_update_order_status'] = $rule;
 
   $rule = rules_reaction_rule();
-  $rule->label = t('Increase Fraud Score if Order has X products.');
+  $rule->label = t('Increase fraud score if order has x amount of products.');
   $rule->tags = array('Commerce Fraud');
   $rule->active = FALSE;
   $rule
@@ -47,7 +47,7 @@ function commerce_fraud_default_rules_configuration() {
 
   if (module_exists('ip2country')) {
     $rule = rules_reaction_rule();
-    $rule->label = t('Increase Fraud Score if User IP in Selected Countries');
+    $rule->label = t('Increase fraud score if user IP in selected countries');
     $rule->tags = array('Commerce Fraud');
     $rule->active = FALSE;
     $rule
@@ -63,7 +63,7 @@ function commerce_fraud_default_rules_configuration() {
   }
 
   $rule = rules_reaction_rule();
-  $rule->label = t('Increase Fraud Score to Orders with PO Box');
+  $rule->label = t('Increase fraud score for orders with po box');
   $rule->tags = array('Commerce Fraud');
   $rule->active = FALSE;
   $rule
@@ -78,7 +78,7 @@ function commerce_fraud_default_rules_configuration() {
   $rules['commerce_fraud_has_po_box'] = $rule;
 
   $rule = rules_reaction_rule();
-  $rule->label = t('Increase Fraud Score to expensive Orders');
+  $rule->label = t('Increase fraud score for orders over x price');
   $rule->tags = array('Commerce Fraud');
   $rule->active = FALSE;
   $rule
@@ -98,7 +98,7 @@ function commerce_fraud_default_rules_configuration() {
   $rules['commerce_fraud_order_total'] = $rule;
 
   $rule = rules_reaction_rule();
-  $rule->label = t('Increase Fraud Score to Orders placed within X minutes');
+  $rule->label = t('Increase fraud score for orders placed within x minutes');
   $rule->tags = array('Commerce Fraud');
   $rule->active = FALSE;
   $rule
@@ -113,7 +113,6 @@ function commerce_fraud_default_rules_configuration() {
       'counter' => 5,
     ));
   $rules['commerce_fraud_last_order'] = $rule;
-
 
   return $rules;
 }

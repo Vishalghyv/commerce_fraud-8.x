@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Commerce Fraud views data.
+ */
+
+/**
  * Implements hook_views_data().
  */
 function commerce_fraud_views_data() {

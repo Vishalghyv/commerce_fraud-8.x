@@ -7,6 +7,7 @@
 
 /**
  * Custom handler class.
+ *
  * @group views_field_handlers
  */
 class views_handler_commerce_fraud_level extends views_handler_field {
@@ -14,12 +15,12 @@ class views_handler_commerce_fraud_level extends views_handler_field {
   /**
    * {@inheritdoc}
    */
-  function query() {}
+  public function query() {}
 
   /**
    * {@inheritdoc}
    */
-  function render($values) {
+  public function render($values) {
     require_once drupal_get_path('module', 'commerce_fraud') . '/commerce_fraud.rules.inc';
     $order = commerce_order_load($values->order_id);
     if (commerce_fraud_rules_is_whitelisted($order)) {

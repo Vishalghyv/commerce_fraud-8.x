@@ -2,7 +2,7 @@
 
 /**
  * @file
- * commerce_fraud main file.
+ * Commerce_fraud main file.
  */
 
 /**
@@ -89,7 +89,7 @@ function commerce_fraud_views_api() {
  * @return bool
  */
 function commerce_fraud_last_order($order, $minutes, $order_statuses = array('completed')) {
-  // Look for {users} orders created within {$time_elapsed} minutes
+  // Look for {users} orders created within {$time_elapsed} minutes.
   $query = db_select('commerce_order', 'o')
     ->fields('o', array('order_id'))
     ->condition('uid', $order->uid)
@@ -133,7 +133,7 @@ function commerce_fraud_get_fraud_score_for_order_id($order_id) {
  *
  * @param stdClass $order
  *   The current commerce_order.
- * @param integer $counter
+ * @param int $counter
  *   By how much to increase the fraud count.
  */
 function commerce_fraud_increase_fraud_count(stdClass $order, $counter) {
@@ -152,7 +152,7 @@ function commerce_fraud_increase_fraud_count(stdClass $order, $counter) {
  *
  * @param stdClass $order
  *   The current commerce_order.
- * @param integer $counter
+ * @param int $counter
  *   By how much to increase the fraud count.
  */
 function commerce_fraud_decrease_fraud_count(stdClass $order, $counter) {
@@ -184,7 +184,7 @@ function commerce_fraud_reset_fraud_count(stdClass $order) {
  * Updates or inserts fraud_score for order id.
  *
  * @param array $record
- *   Must be an array with two keys: order_id and fraud_score
+ *   Must be an array with two keys: order_id and fraud_score.
  */
 function commerce_fraud_write_record(array $record) {
   db_merge('commerce_fraud_fraud_score')
@@ -192,7 +192,6 @@ function commerce_fraud_write_record(array $record) {
     ->fields($record)
     ->execute();
 }
-
 
 /**
  * Whitelist condition callback.
@@ -261,7 +260,6 @@ function commerce_fraud_order_has_pobox($order) {
   $shipping_address = $order_wrapper->commerce_customer_shipping->commerce_customer_address;
   return preg_match("/(p(.*)?o(.*?)?)(\s+)?(bo?x)?(\s+)?[#]?(\d+)?/i", $shipping_address->thoroughfare->value());
 }
-
 
 /**
  * Return an array of fraud levels.
