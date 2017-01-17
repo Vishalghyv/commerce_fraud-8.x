@@ -106,6 +106,7 @@ function commerce_fraud_default_rules_configuration() {
     ->condition('commerce_fraud_last_order', array(
       'commerce_order:select' => 'commerce-order',
       'minutes' => '5',
+      'order_statuses:select' => array('completed'),
     ))
     ->action('commerce_fraud_increase_fraud_count', array(
       'commerce_order:select' => 'commerce_order',

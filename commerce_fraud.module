@@ -81,13 +81,19 @@ function commerce_fraud_views_api() {
 
 /**
  * Callback for last order.
+ *
+ * @param $order
+ * @param $minutes
+ * @param array $order_statuses
+ *
+ * @return bool
  */
-function commerce_fraud_last_order($order, $minutes, $order_status = 'completed') {
+function commerce_fraud_last_order($order, $minutes, $order_statuses = array('completed')) {
   // Look for {users} orders created within {$time_elapsed} minutes
   $query = db_select('commerce_order', 'o')
     ->fields('o', array('order_id'))
     ->condition('uid', $order->uid)
-    ->condition('status', $order_status)
+    ->condition('status', $order_statuses, 'IN')
     ->condition('created', time() - ($minutes * 60), '>=');
 
   return !empty($query->execute()->fetchAssoc());
@@ -95,24 +101,16 @@ function commerce_fraud_last_order($order, $minutes, $order_status = 'completed'
 
 /**
  * Returns a timestamp matching x days before today.
+ *
+ * @param $minutes
+ *
+ * @return int
  */
 function commerce_fraud_timestamp_from_minutes($minutes) {
   $date = new DateTimeImmutable();
   $date = $date->modify('- ' . $minutes . ' minutes');
 
   return $date->getTimestamp();
-}
-
-/**
- * Checks the street address for a PO Box.
- *
- * @param $order_wrapper
- * @return bool
- */
-function commerce_fraud_order_has_pobox($order_wrapper) {
-  $address = $order_wrapper->commerce_customer_shipping->commerce_customer_address->thoroughfare->value();
-
-  return preg_match("/(p(.*)?o(.*?)?)(\s+)?(bo?x)?(\s+)?[#]?(\d+)?/i", $address);
 }
 
 /**
@@ -198,6 +196,10 @@ function commerce_fraud_write_record(array $record) {
 
 /**
  * Whitelist condition callback.
+ *
+ * @param $order
+ *
+ * @return bool
  */
 function commerce_fraud_is_whitelisted($order) {
   if ($fraud_score = commerce_fraud_get_fraud_score_for_order_id($order->order_id)) {
@@ -212,6 +214,10 @@ function commerce_fraud_is_whitelisted($order) {
 
 /**
  * Greylist condition callback.
+ *
+ * @param $order
+ *
+ * @return bool
  */
 function commerce_fraud_is_greylisted($order) {
   if ($fraud_score = commerce_fraud_get_fraud_score_for_order_id($order->order_id)) {
@@ -227,6 +233,10 @@ function commerce_fraud_is_greylisted($order) {
 
 /**
  * Blacklist condition callback.
+ *
+ * @param $order
+ *
+ * @return bool
  */
 function commerce_fraud_is_blacklisted($order) {
   if ($fraud_score = commerce_fraud_get_fraud_score_for_order_id($order->order_id)) {
@@ -240,9 +250,13 @@ function commerce_fraud_is_blacklisted($order) {
 }
 
 /**
+ * Checks the street address for a PO Box.
  *
+ * @param $order
+ *
+ * @return bool
  */
-function commerce_order_has_po_box($order) {
+function commerce_fraud_order_has_pobox($order) {
   $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
   $shipping_address = $order_wrapper->commerce_customer_shipping->commerce_customer_address;
   return preg_match("/(p(.*)?o(.*?)?)(\s+)?(bo?x)?(\s+)?[#]?(\d+)?/i", $shipping_address->thoroughfare->value());
@@ -250,9 +264,11 @@ function commerce_order_has_po_box($order) {
 
 
 /**
+ * Return an array of fraud levels.
+ *
  * @return array
  */
-function commerce_order_condition_fraud_level_operator_options() {
+function commerce_fraud_order_condition_fraud_level_operator_options() {
   return array(
     'commerce_fraud_is_whitelisted' => 'Whitelisted',
     'commerce_fraud_is_greylisted' => 'Greylisted',

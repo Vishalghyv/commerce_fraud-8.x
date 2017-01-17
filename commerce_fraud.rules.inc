@@ -84,7 +84,7 @@ function commerce_fraud_rules_condition_info() {
       'commerce_fraud_level_function' => array(
         'type' => 'text',
         'label' => t('Operator'),
-        'options list' => 'commerce_order_condition_fraud_level_operator_options',
+        'options list' => 'commerce_fraud_order_condition_fraud_level_operator_options',
       ),
     ),
     'callbacks' => array(
@@ -136,16 +136,21 @@ function commerce_fraud_rules_condition_info() {
   );
 
   $conditions['commerce_fraud_last_order'] = array(
-    'label' => t('Last order is within X minutes'),
+    'label' => t('Last order is within x minutes'),
     'group' => t('Commerce Fraud'),
     'parameter' => array(
       'commerce_order' => array(
-        'label' => t('The Current Commerce Order'),
+        'label' => t('The current commerce order'),
         'type' => 'commerce_order',
       ),
       'minutes' => array(
-        'label' => t('Number of Minutes'),
+        'label' => t('Number of minutes'),
         'type' => 'integer',
+      ),
+      'order_statuses' => array(
+        'label' => t('Order statuses to compare'),
+        'type' => 'list<text>',
+        'options list' => 'commerce_order_status_options_list',
       ),
     ),
     'callbacks' => array(
@@ -219,9 +224,15 @@ function commerce_fraud_rules_user_ip_in_country($countries) {
 
 /**
  *  Callback for last order condition.
+ *
+ * @param $order
+ * @param $minutes
+ * @param $order_statuses
+ *
+ * @return bool
  */
-function commerce_fraud_rules_last_order($order, $minutes) {
-  return commerce_fraud_last_order($order, $minutes);
+function commerce_fraud_rules_last_order($order, $minutes, $order_statuses) {
+  return commerce_fraud_last_order($order, $minutes, $order_statuses);
 }
 
 /**
