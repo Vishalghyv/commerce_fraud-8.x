@@ -23,5 +23,13 @@ function commerce_fraud_views_data() {
     ),
   );
 
+  $data['commerce_fraud']['commerce_fraud_points'] = array(
+    'title' => t('Commerce Fraud Points'),
+    'help' => t('Shows breakdown of points accumulated on the order.'),
+    'field' => array(
+      'handler' => 'views_handler_commerce_fraud_points',
+    ),
+  );
+
   return $data;
 }

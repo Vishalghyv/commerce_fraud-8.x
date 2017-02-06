@@ -10,3 +10,4 @@ dependencies[] = rules
 configure = admin/commerce/config/fraud
 
 files[] = includes/views/views_handler_commerce_fraud_level.inc
+files[] = includes/views/views_handler_commerce_fraud_points.inc

@@ -42,22 +42,24 @@ function commerce_fraud_default_rules_configuration() {
     ->action('commerce_fraud_increase_fraud_count', array(
       'commerce_order:select' => 'commerce_order',
       'counter' => 5,
+      'description' => t('Order has more than 10 products'),
     ));
   $rules['commerce_fraud_item_quantity'] = $rule;
 
   if (module_exists('ip2country')) {
     $rule = rules_reaction_rule();
-    $rule->label = t('Increase fraud score if user IP in selected countries');
+    $rule->label = t('Increase fraud score if user IP is not in selected countries');
     $rule->tags = array('Commerce Fraud');
     $rule->active = FALSE;
     $rule
-      ->event('commerce_order_insert')
-      ->condition('commerce_fraud_user_ip_in_country', array(
+      ->event('commerce_checkout_complete')
+      ->condition(rules_condition('commerce_fraud_user_ip_in_country', array(
         'countries' => 'CA\r\nUS',
-      ))
+      ))->negate())
       ->action('commerce_fraud_increase_fraud_count', array(
         'commerce_order:select' => 'commerce_order',
         'counter' => 5,
+        'description' => t('User IP not in USA or Canada'),
       ));
     $rules['commerce_fraud_country_ip'] = $rule;
   }
@@ -74,6 +76,7 @@ function commerce_fraud_default_rules_configuration() {
     ->action('commerce_fraud_increase_fraud_count', array(
       'commerce_order:select' => 'commerce_order',
       'counter' => 5,
+      'description' => t('Shipping Address has po box'),
     ));
   $rules['commerce_fraud_has_po_box'] = $rule;
 
@@ -94,6 +97,7 @@ function commerce_fraud_default_rules_configuration() {
     ->action('commerce_fraud_increase_fraud_count', array(
       'commerce_order:select' => 'commerce_order',
       'counter' => 5,
+      'description' => t('Order is greater than $500.00'),
     ));
   $rules['commerce_fraud_order_total'] = $rule;
 
@@ -111,6 +115,7 @@ function commerce_fraud_default_rules_configuration() {
     ->action('commerce_fraud_increase_fraud_count', array(
       'commerce_order:select' => 'commerce_order',
       'counter' => 5,
+      'description' => t('Previous order completed within 5 minutes'),
     ));
   $rules['commerce_fraud_last_order'] = $rule;
 

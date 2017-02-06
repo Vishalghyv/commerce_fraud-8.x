@@ -23,13 +23,13 @@ class views_handler_commerce_fraud_level extends views_handler_field {
   public function render($values) {
     require_once drupal_get_path('module', 'commerce_fraud') . '/commerce_fraud.rules.inc';
     $order = commerce_order_load($values->order_id);
-    if (commerce_fraud_rules_is_whitelisted($order)) {
+    if (commerce_fraud_is_whitelisted($order)) {
       return t('Whitelisted');
     }
-    elseif (commerce_fraud_rules_is_greylisted($order)) {
+    elseif (commerce_fraud_is_greylisted($order)) {
       return t('Greylisted');
     }
-    elseif (commerce_fraud_rules_is_blacklisted($order)) {
+    elseif (commerce_fraud_is_blacklisted($order)) {
       return t('Blacklisted');
     }
   }

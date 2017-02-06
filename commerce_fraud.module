@@ -80,7 +80,32 @@ function commerce_fraud_views_api() {
 }
 
 /**
- * Callback for last order.
+ * Implements hook_entity_view_alter().
+ */
+function commerce_fraud_entity_view_alter(&$build, $type) {
+  if ($type == 'commerce_order') {
+    $breakdown = array(
+      '#prefix' => '<div class="field"><div class="field-label">' . t('Fraud Information: ') . '</div><div class="field-items">',
+      '#suffix' => '</div></div>',
+      '#markup' => commerce_fraud_get_fraud_notes_for_order($build['#entity']->order_number),
+    );
+    $build['commerce_fraud_points_breakdown'] = $breakdown;
+  }
+}
+
+/**
+ * Implements hook_theme_registry_alter().
+ */
+function commerce_fraud_theme_registry_alter(&$theme_registry) {
+  if (!empty($theme_registry['commerce_order__backoffice'])) {
+    $theme_registry['commerce_order__backoffice']['path'] = drupal_get_path('module', 'commerce_fraud') . '/templates';
+    $theme_registry['commerce_order__backoffice']['template'] = 'commerce-fraud--order-backoffice';
+  }
+}
+
+/**
+ * Checks to see if the order owner has an order with a status 'IN'
+ * $order_statuses, was created within $minutes of the current $order.
  *
  * @param $order
  * @param $minutes
@@ -89,7 +114,6 @@ function commerce_fraud_views_api() {
  * @return bool
  */
 function commerce_fraud_last_order($order, $minutes, $order_statuses = array('completed')) {
-  // Look for {users} orders created within {$time_elapsed} minutes.
   $query = db_select('commerce_order', 'o')
     ->fields('o', array('order_id'))
     ->condition('uid', $order->uid)
@@ -121,76 +145,79 @@ function commerce_fraud_timestamp_from_minutes($minutes) {
  * @return int
  */
 function commerce_fraud_get_fraud_score_for_order_id($order_id) {
-  return db_select('commerce_fraud_fraud_score', 'f')
+  $result = db_select('commerce_fraud_fraud_score', 'f')
     ->fields('f', array('fraud_score'))
     ->condition('order_id', $order_id)
-    ->execute()
-    ->fetchField();
+    ->execute();
+  $score = 0;
+  foreach ($result as $row) {
+    $score += $row->fraud_score;
+  }
+  return $score;
 }
 
 /**
- * Increases the fraud count of an order.
+ * Builds a formatted string of the fraud score breakdown.
  *
- * @param stdClass $order
- *   The current commerce_order.
- * @param int $counter
- *   By how much to increase the fraud count.
+ * @param $order_id
+ *
+ * @return string
+ *   Formatted breakdown of fraud score.
  */
-function commerce_fraud_increase_fraud_count(stdClass $order, $counter) {
-  $order_id = $order->order_id;
-  $fraud_score = commerce_fraud_get_fraud_score_for_order_id($order_id);
-  $fraud_score += $counter;
-  commerce_fraud_write_record(array(
-    'order_id' => $order_id,
-    'fraud_score' => $fraud_score,
-  ));
-  rules_invoke_event('commerce_fraud_count_changed', $order);
+function commerce_fraud_get_fraud_notes_for_order($order_id) {
+  $breakdown = '';
+  $total = commerce_fraud_get_fraud_score_for_order_id($order_id);
+  if ($total <= 0) {
+    return t('No potential fraudulent activity.');
+  }
+  else {
+    $breakdown .= '<strong>Total Points: </strong>' . $total;
+  }
+
+  $result = db_select('commerce_fraud_fraud_score', 'f')
+    ->fields('f', array('note'))
+    ->condition('order_id', $order_id)
+    ->execute();
+
+  foreach ($result as $row) {
+    $breakdown .= '<br>' . $row->note;
+  }
+
+  return $breakdown;
 }
 
 /**
- * Decreases the fraud count of an order.
+ * Add points to the fraud count of an order.
  *
- * @param stdClass $order
+ * @param $order
  *   The current commerce_order.
  * @param int $counter
- *   By how much to increase the fraud count.
+ *   Fraud points to add to the order.
+ * @param string $description
+ *   The description of the rule.
  */
-function commerce_fraud_decrease_fraud_count(stdClass $order, $counter) {
-  $order_id = $order->order_id;
-  $fraud_score = commerce_fraud_get_fraud_score_for_order_id($order_id);
-  $fraud_score -= $counter;
-  commerce_fraud_write_record(array(
-    'order_id' => $order_id,
-    'fraud_score' => $fraud_score,
-  ));
+function commerce_fraud_write_record($order, $counter, $description = '') {
+  db_insert('commerce_fraud_fraud_score')
+    ->fields(array(
+      'order_id' => $order->order_id,
+      'fraud_score' => $counter,
+      'note' => $description . ": " . $counter,
+    ))
+    ->execute();
   rules_invoke_event('commerce_fraud_count_changed', $order);
 }
 
 /**
  * Reset the fraud count of an order.
  *
- * @param stdClass $order
+ * @param $order
  *   The current commerce_order.
  */
-function commerce_fraud_reset_fraud_count(stdClass $order) {
-  commerce_fraud_write_record(array(
-    'order_id' => $order->order_id,
-    'fraud_score' => 0,
-  ));
-  rules_invoke_event('commerce_fraud_count_changed', $order);
-}
-
-/**
- * Updates or inserts fraud_score for order id.
- *
- * @param array $record
- *   Must be an array with two keys: order_id and fraud_score.
- */
-function commerce_fraud_write_record(array $record) {
-  db_merge('commerce_fraud_fraud_score')
-    ->key(array('order_id' => $record['order_id']))
-    ->fields($record)
+function commerce_fraud_reset_fraud_count($order) {
+  db_delete('commerce_fraud_fraud_score')
+    ->condition('order_id', $order->order_id)
     ->execute();
+  rules_invoke_event('commerce_fraud_count_changed', $order);
 }
 
 /**
@@ -203,12 +230,9 @@ function commerce_fraud_write_record(array $record) {
 function commerce_fraud_is_whitelisted($order) {
   if ($fraud_score = commerce_fraud_get_fraud_score_for_order_id($order->order_id)) {
     $whitelist_cap = variable_get('commerce_fraud_greylist_cap', 10);
-
     return $fraud_score < $whitelist_cap;
   }
-  else {
-    return TRUE;
-  }
+  return TRUE;
 }
 
 /**
@@ -222,12 +246,9 @@ function commerce_fraud_is_greylisted($order) {
   if ($fraud_score = commerce_fraud_get_fraud_score_for_order_id($order->order_id)) {
     $greylist_lower_cap = variable_get('commerce_fraud_greylist_cap', 10);
     $greylist_upper_cap = variable_get('commerce_fraud_blacklist_cap', 20);
-
     return $fraud_score >= $greylist_lower_cap && $fraud_score < $greylist_upper_cap;
   }
-  else {
-    return FALSE;
-  }
+  return FALSE;
 }
 
 /**
@@ -240,12 +261,9 @@ function commerce_fraud_is_greylisted($order) {
 function commerce_fraud_is_blacklisted($order) {
   if ($fraud_score = commerce_fraud_get_fraud_score_for_order_id($order->order_id)) {
     $blacklist_cap = variable_get('commerce_fraud_blacklist_cap', 20);
-
     return $fraud_score >= $blacklist_cap;
   }
-  else {
-    return FALSE;
-  }
+  return FALSE;
 }
 
 /**

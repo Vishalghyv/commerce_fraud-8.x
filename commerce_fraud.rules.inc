@@ -240,8 +240,12 @@ function commerce_fraud_rules_action_info() {
         'type' => 'integer',
         'label' => t('The counter'),
         'description' => t('Defines by how much the fraud count is increased.'),
-        'optional' => TRUE,
         'default value' => 1,
+      ),
+      'description' => array(
+        'type' => 'text',
+        'label' => t('Rule description'),
+        'description' => t('Brief description of the rule that will be displayed in the fraud points breakdown when viewing the order.'),
       ),
     ),
     'callbacks' => array(
@@ -262,8 +266,12 @@ function commerce_fraud_rules_action_info() {
         'type' => 'integer',
         'label' => t('The counter'),
         'description' => t('Defines by how much the fraud count is increased.'),
-        'optional' => TRUE,
         'default value' => 1,
+      ),
+      'description' => array(
+        'type' => 'text',
+        'label' => t('Rule description'),
+        'description' => t('Brief description of the rule that will be displayed in the fraud points breakdown when viewing the order.'),
       ),
     ),
     'callbacks' => array(
@@ -293,33 +301,35 @@ function commerce_fraud_rules_action_info() {
 /**
  * Rules action: increases the fraud count of an order.
  *
- * @param stdClass $order
+ * @param $order
  *   The current commerce_order.
  * @param int $counter
  *   By how much to increase the fraud count.
+ * @param $description
+ *   Description for fraud points breakdown.
  */
-function commerce_fraud_rules_increase_fraud_count(stdClass $order, $counter) {
-  commerce_fraud_increase_fraud_count($order, $counter);
+function commerce_fraud_rules_increase_fraud_count($order, $counter, $description) {
+  commerce_fraud_write_record($order, $counter, $description);
 }
 
 /**
  * Rules action: decreases the fraud count of an order.
  *
- * @param stdClass $order
+ * @param $order
  *   The current commerce_order.
  * @param int $counter
  *   By how much to decrease the fraud count.
  */
-function commerce_fraud_rules_decrease_fraud_count(stdClass $order, $counter) {
-  commerce_fraud_decrease_fraud_count($order, $counter);
+function commerce_fraud_rules_decrease_fraud_count($order, $counter, $description) {
+  commerce_fraud_write_record($order, -$counter, $description);
 }
 
 /**
  * Rules action: resets the fraud count of an order.
  *
- * @param stdClass $order
+ * @param $order
  *   The current commerce_order.
  */
-function commerce_fraud_rules_reset_fraud_count(stdClass $order) {
+function commerce_fraud_rules_reset_fraud_count($order) {
   commerce_fraud_reset_fraud_count($order);
 }
