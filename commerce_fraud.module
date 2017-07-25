@@ -56,6 +56,11 @@ function commerce_fraud_permission() {
       'description' => t('Allows users to configure the Commerce Fraud settings.'),
       'restrict access' => TRUE,
     ),
+    'view order fraud notes' => array(
+      'title' => t('View order fraud notes'),
+      'description' => t('Allows users to view fraud notes for orders they have access to.'),
+      'restrict access' => TRUE,
+    ),
   );
 }
 
@@ -84,6 +89,10 @@ function commerce_fraud_views_api() {
  */
 function commerce_fraud_entity_view_alter(&$build, $type) {
   if ($type == 'commerce_order') {
+    if (!user_access('view order fraud notes')) {
+      return;
+    }
+
     $breakdown = array(
       '#prefix' => '<div class="field"><div class="field-label">' . t('Fraud Information: ') . '</div><div class="field-items">',
       '#suffix' => '</div></div>',
