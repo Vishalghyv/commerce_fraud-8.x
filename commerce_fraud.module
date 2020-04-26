@@ -276,7 +276,7 @@ function commerce_fraud_is_blacklisted($order) {
 function commerce_fraud_order_has_pobox($order) {
   $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
   $shipping_address = $order_wrapper->commerce_customer_shipping->commerce_customer_address;
-  return preg_match("/(p(.*)?o(.*?)?)(\s+)?(bo?x)?(\s+)?[#]?(\d+)?/i", $shipping_address->thoroughfare->value());
+  return preg_match("/^\s*((?:P(?:OST)?.?\s*(?:O(?:FF(?:ICE)?)?)?.?\s*(?:B(?:IN|OX)?)?)+|(?:B(?:IN|OX)+\s+)+)\s*\d+\s*(^|\s)/i", $shipping_address->thoroughfare->value());
 }
 
 /**
