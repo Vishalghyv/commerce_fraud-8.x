@@ -1,0 +1,7 @@
+commerce_fraud.form:
+  path: '/admin/commerce/config/fraud_setting'
+  defaults:
+    _form: '\Drupal\commerce_fraud\Form\CommerceFraudForm'
+    _title: 'Commerce Fraud settings'
+  requirements:
+    _permission: 'administer commerce fraud'

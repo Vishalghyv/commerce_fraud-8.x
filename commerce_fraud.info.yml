@@ -1,0 +1,12 @@
+name : Commerce Fraud
+type : module
+description : 'Detects potentially fraudulous orders'
+core_version_requirement: ^8.7.7 || ^9
+package : Commerce (contrib)
+
+configure : commerce_fraud.configuration
+
+dependencies:
+  - commerce:commerce
+  - commerce:commerce_order
+  - rules:rules
