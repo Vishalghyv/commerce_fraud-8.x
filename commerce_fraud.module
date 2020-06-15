@@ -5,6 +5,8 @@
  * Contains commerce_fraud.module.
  */
 
+use Drupal\commerce_fraud\Event\CommerceOrderCompleteCheckoutEvent;
+
 use Drupal\Core\Routing\RouteMatchInterface;
 
 /**
@@ -22,3 +24,83 @@ function commerce_fraud_help($route_name, RouteMatchInterface $route_match) {
     default:
   }
 }
+
+// /**
+//  * Add points to the fraud count of an order.
+//  *
+//  * @param $order
+//  *   The current commerce_order.
+//  * @param int $counter
+//  *   Fraud points to add to the order.
+//  * @param string $description
+//  *   The description of the rule.
+//  */
+// function commerce_fraud_write_record($order, $counter, $description = '') {
+//   db_insert('commerce_fraud_fraud_score')
+//     ->fields(array(
+//       'order_id' => $order->order_id,
+//       'fraud_score' => $counter,
+//       'note' => $description . ": " . $counter,
+//     ))
+//     ->execute();
+// }
+
+// /**
+//  * Reset the fraud count of an order.
+//  *
+//  * @param $order
+//  *   The current commerce_order.
+//  */
+// function commerce_fraud_reset_fraud_count($order) {
+//   db_delete('commerce_fraud_fraud_score')
+//     ->condition('order_id', $order->order_id)
+//     ->execute();
+// }
+
+// /**
+//  * Whitelist condition callback.
+//  *
+//  * @param $order
+//  *
+//  * @return bool
+//  */
+// function commerce_fraud_is_whitelisted($order) {
+//   if ($fraud_score = commerce_fraud_get_fraud_score_for_order_id($order->order_id)) {
+//     $whitelist_cap = \Drupal::state()->get('commerce_fraud_greylist_cap', 10);
+//     return $fraud_score < $whitelist_cap;
+//   }
+//   return TRUE;
+// }
+
+// /**
+//  * Greylist condition callback.
+//  *
+//  * @param $order
+//  *
+//  * @return bool
+//  */
+// function commerce_fraud_is_greylisted($order) {
+//   if ($fraud_score = commerce_fraud_get_fraud_score_for_order_id($order->order_id)) {
+//     $greylist_lower_cap = \Drupal::state()->get('commerce_fraud_greylist_cap', 10);
+//     $greylist_upper_cap = \Drupal::state()->get('commerce_fraud_blacklist_cap', 20);
+//     return $fraud_score >= $greylist_lower_cap && $fraud_score < $greylist_upper_cap;
+//   }
+//   return FALSE;
+// }
+
+// /**
+//  * Blacklist condition callback.
+//  *
+//  * @param $order
+//  *
+//  * @return bool
+//  */
+// function commerce_fraud_is_blacklisted($order) {
+//   if ($fraud_score = commerce_fraud_get_fraud_score_for_order_id($order->order_id)) {
+//     $blacklist_cap = \Drupal::state()->get('commerce_fraud_blacklist_cap', 20);
+//     return $fraud_score >= $blacklist_cap;
+//   }
+//   return FALSE;
+// }
+
+

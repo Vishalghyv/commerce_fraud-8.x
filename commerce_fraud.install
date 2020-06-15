@@ -1,0 +1,31 @@
+<?php
+
+/**
+ * @file
+ * Commerce Fraud module install file.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function commerce_fraud_schema() {
+  $schema = array();
+
+  $schema['commerce_fraud_fraud_score'] = array(
+    'description' => 'The table containing commerce order fraud score.',
+    'fields' => array(
+      'order_id' => array('type' => 'int', 'length' => 32, 'not null' => TRUE),
+      'fraud_score' => array(
+        'type' => 'int',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
+      'note' => array(
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+    ),
+  );
+
+  return $schema;
+}

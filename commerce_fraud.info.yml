@@ -9,4 +9,6 @@ dependencies:
   - commerce
   - entity
   - views
+  - commerce:commerce_order
+  - drupal:options
 

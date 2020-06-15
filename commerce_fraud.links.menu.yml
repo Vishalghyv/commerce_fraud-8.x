@@ -1,0 +1,6 @@
+commerce_fraud.settings:
+  title: 'Commerce Fraud'
+  route_name: 'commerce_fraud.settings'
+  parent: 'commerce.configuration'
+  description: 'Manage Commerce Fraud configuration.'
+  weight: 10

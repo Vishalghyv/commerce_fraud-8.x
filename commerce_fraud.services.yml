@@ -1,0 +1,15 @@
+services:
+  commerce_fraud.commerce_fraud_subscriber:
+    class: Drupal\commerce_fraud\EventSubscriber\CommerceFraudSubscriber
+    arguments: ['@commerce_fraud.commerce_fraud_generation_service']
+    tags:
+      - { name: event_subscriber }
+
+  commerce_fraud.commerce_fraud_generation_service:
+    class: Drupal\commerce_fraud\CommerceFraudGenerationService
+    arguments: ['@config.factory', '@plugin.manager.commerce_fraud_generator']
+
+  plugin.manager.commerce_fraud_generator:
+    class: Drupal\commerce_fraud\CommerceFraudManager
+    parent: default_plugin_manager
+

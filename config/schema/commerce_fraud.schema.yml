@@ -1,0 +1,7 @@
+commerce_fraud.settings:
+  type: config_entity
+  label: Settings
+  mapping:
+    generator:
+      type: string
+      label: 'Fraud generator'
