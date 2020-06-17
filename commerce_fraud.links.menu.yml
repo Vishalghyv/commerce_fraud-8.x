@@ -4,3 +4,9 @@ commerce_fraud.settings:
   parent: 'commerce.configuration'
   description: 'Manage Commerce Fraud configuration.'
   weight: 10
+
+entity.rules.collection:
+  title: 'Content Entity Example: Rules Listing'
+  route_name: entity.rules.collection
+  description: 'List Rules'
+  weight: 10

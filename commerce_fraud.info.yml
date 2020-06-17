@@ -8,6 +8,7 @@ dependencies:
   - action
   - commerce
   - entity
+  - entity_reference
   - views
   - commerce:commerce_order
   - drupal:options

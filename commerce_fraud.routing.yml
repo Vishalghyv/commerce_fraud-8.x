@@ -13,3 +13,50 @@ commerce_fraud.settings:
     _title: 'Commerce Fraud: Configuration'
   requirements:
     _permission: 'administer site configuration'
+
+entity.rules.canonical:
+  path: '/rules/{rules}'
+  defaults:
+  # Calls the view controller, defined in the annotation of the contact entity
+    _entity_view: 'rules'
+    _title: 'Rules Content'
+  requirements:
+  # Calls the access controller of the entity, $operation 'view'
+    _entity_access: 'rules.view'
+
+entity.rules.collection:
+  path: '/rules/list'
+  defaults:
+  # Calls the list controller, defined in the annotation of the contact entity.
+    _entity_list: 'rules'
+    _title: 'Rules List'
+  requirements:
+  # Checks for permission directly.
+    _permission: 'administer rules entity'
+
+rules.rule_add:
+  path: '/rules/add'
+  defaults:
+  # Calls the form.add controller, defined in the contact entity.
+    _entity_form: rules.add
+    _title: 'Add Rules'
+  requirements:
+    _entity_create_access: 'rules'
+
+entity.rules.edit_form:
+  path: '/rules/{rules}/edit'
+  defaults:
+  # Calls the form.edit controller, defined in the contact entity.
+    _entity_form: rules.edit
+    _title: 'Edit Rules'
+  requirements:
+    _entity_access: 'rules.edit'
+
+entity.rules.delete_form:
+  path: '/rules/{rules}/delete'
+  defaults:
+    # Calls the form.delete controller, defined in the contact entity.
+    _entity_form: rules.delete
+    _title: 'Delete Rules'
+  requirements:
+    _entity_access: 'rules.delete'
