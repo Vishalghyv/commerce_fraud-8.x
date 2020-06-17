@@ -31,8 +31,6 @@ entity.rules.collection:
     _entity_list: 'rules'
     _title: 'Rules List'
   requirements:
-  # Checks for permission directly.
-    _permission: 'administer rules entity'
 
 rules.rule_add:
   path: '/rules/add'
