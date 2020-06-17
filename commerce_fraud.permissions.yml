@@ -1,0 +1,11 @@
+view rules entity:
+  title: 'View rules entity'
+add rules entity:
+  title: 'Add rules entity'
+edit rules entity:
+  title: 'Edit rules Entity'
+delete rules entity:
+  title: 'Delete rules entity'
+administer rules entity:
+  title: 'Administer rules entity'
+  restrict access: TRUE

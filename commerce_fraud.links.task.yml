@@ -1,0 +1,20 @@
+commerce_fraud.settings:
+  route_name: commerce_fraud.settings
+  title: Settings
+  base_route: commerce_fraud.settings
+
+rule.view:
+  route_name: entity.rules.canonical
+  base_route: entity.rules.canonical
+  title: View
+
+rule.page_edit:
+  route_name: entity.rules.edit_form
+  base_route: entity.rules.canonical
+  title: Edit
+
+rule.delete_confirm:
+  route_name:  entity.rules.delete_form
+  base_route:  entity.rules.canonical
+  title: Delete
+  weight: 10
