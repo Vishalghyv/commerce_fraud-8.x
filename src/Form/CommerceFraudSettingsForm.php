@@ -78,7 +78,6 @@ class CommerceFraudSettingsForm extends ConfigFormBase {
       '#open' => TRUE,
     ];
     drupal_set_message('df');
-  drupal_set_message($this->commerceFraudManager->getDefinitions());
 
     $generator_plugins = array_map(function ($definition) {
       return sprintf('%s (%s)', $definition['label'], $definition['description']);
