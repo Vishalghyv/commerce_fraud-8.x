@@ -4,11 +4,15 @@ namespace Drupal\commerce_fraud\Plugin\Commerce\FraudGenerator;
 
 use Drupal\Component\Plugin\PluginInspectionInterface;
 use Drupal\commerce_order\Entity\OrderInterface;
+use Drupal\commerce_fraud\Entity\RulesInterface;
+use Drupal\Component\Plugin\ConfigurableInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Plugin\PluginFormInterface;
 
 /**
  * Defines the interface for order number generators.
  */
-interface FraudGeneratorInterface extends PluginInspectionInterface {
+interface FraudGeneratorInterface extends ConfigurableInterface, PluginFormInterface, PluginInspectionInterface {
 
   /**
    * Gets the order number generator label.

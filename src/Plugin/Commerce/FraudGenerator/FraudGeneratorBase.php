@@ -8,6 +8,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Plugin\PluginBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\commerce_price\RounderInterface;
 
 /**
  * Abstract base class for order number generators.
@@ -28,6 +29,14 @@ abstract class FraudGeneratorBase extends PluginBase implements FraudGeneratorIn
     return $this->pluginDefinition['description'];
   }
 
+
+  /**
+   * The rounder.
+   *
+   * @var \Drupal\commerce_price\RounderInterface
+   */
+  protected $rounder;
+
   /**
    * Constructs a new PromotionOfferBase object.
    *
@@ -40,10 +49,11 @@ abstract class FraudGeneratorBase extends PluginBase implements FraudGeneratorIn
    * @param \Drupal\commerce_price\RounderInterface $rounder
    *   The rounder.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, RounderInterface $rounder) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
     $this->setConfiguration($configuration);
+    $this->rounder = $rounder;
   }
 
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
@@ -51,6 +61,7 @@ abstract class FraudGeneratorBase extends PluginBase implements FraudGeneratorIn
       $configuration,
       $plugin_id,
       $plugin_definition,
+      $container->get('commerce_price.rounder')
     );
   }
 
@@ -84,6 +95,11 @@ abstract class FraudGeneratorBase extends PluginBase implements FraudGeneratorIn
     $form['#type'] = 'fieldset';
     $form['#title'] = $this->t('Offer');
     $form['#collapsible'] = FALSE;
+    $form['buy'] = [
+      '#type' => 'fieldset',
+      '#title' => $this->t('Customer buys'),
+      '#collapsible' => FALSE,
+    ];
 
     return $form;
   }

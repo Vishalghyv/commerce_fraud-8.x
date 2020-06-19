@@ -7,7 +7,6 @@ use Drupal\commerce_order\Adjustment;
 use Drupal\commerce_order\Entity\OrderItemInterface;
 use Drupal\commerce_order\PriceSplitterInterface;
 use Drupal\commerce_price\Calculator;
-use Drupal\commerce_price\Price;
 use Drupal\commerce_price\RounderInterface;
 use Drupal\commerce_fraud\Entity\RulesInterface;
 use Drupal\Component\Utility\Html;
@@ -53,8 +52,8 @@ class TotalPriceFraudGenerator extends FraudOfferBase {
    * @param \Drupal\commerce\ConditionManagerInterface $condition_manager
    *   The condition manager.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition,  ConditionManagerInterface $condition_manager) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition);
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, RounderInterface $rounder, PriceSplitterInterface $splitter, ConditionManagerInterface $condition_manager) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition, $rounder, $splitter);
 
     $this->conditionManager = $condition_manager;
   }
