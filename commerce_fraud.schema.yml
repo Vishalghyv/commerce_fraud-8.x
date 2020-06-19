@@ -1,0 +1,10 @@
+field.widget.settings.rules_default_widget:
+  type: mapping
+  label: 'Rules default widget widget settings'
+  mapping:
+    size:
+      type: integer
+      label: 'Size'
+    placeholder:
+      type: textfield
+      label: 'Placeholder'
