@@ -4,11 +4,15 @@ namespace Drupal\commerce_fraud\Plugin\Commerce\FraudGenerator;
 
 use Drupal\Component\Plugin\PluginInspectionInterface;
 use Drupal\commerce_order\Entity\OrderInterface;
+use Drupal\commerce_fraud\Entity\RulesInterface;
+use Drupal\Component\Plugin\ConfigurableInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Plugin\PluginFormInterface;
 
 /**
  * Defines the interface for order number generators.
  */
-interface FraudGeneratorInterface extends PluginInspectionInterface {
+interface FraudGeneratorInterface extends ConfigurableInterface, PluginFormInterface, PluginInspectionInterface {
 
   /**
    * Gets the order number generator label.
@@ -34,6 +38,16 @@ interface FraudGeneratorInterface extends PluginInspectionInterface {
    * @return int
    */
   public function generate();
+
+  /**
+   * Gets the offer entity type ID.
+   *
+   * This is the entity type ID of the entity passed to apply().
+   *
+   * @return string
+   *   The offer's entity type ID.
+   */
+  public function getEntityTypeId();
 
   /**
    * Applies the offer to the given entity.

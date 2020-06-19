@@ -23,7 +23,7 @@ class CommerceFraudGenerator extends Plugin {
   public $id;
 
   /**
-   * The order number generator label.
+   * The label of the plugin.
    *
    * @var \Drupal\Core\Annotation\Translation
    *
@@ -32,12 +32,13 @@ class CommerceFraudGenerator extends Plugin {
   public $label;
 
   /**
-   * The order number generator description.
+   * The offer entity type ID.
    *
-   * @var \Drupal\Core\Annotation\Translation
+   * This is the entity type ID of the entity passed to the plugin during execution.
+   * For example: 'commerce_order'.
    *
-   * @ingroup plugin_translatable
+   * @var string
    */
-  public $description;
+  public $entity_type;
 
 }

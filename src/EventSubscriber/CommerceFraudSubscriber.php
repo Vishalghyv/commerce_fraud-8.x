@@ -5,6 +5,10 @@ namespace Drupal\commerce_fraud\EventSubscriber;
 use Drupal\commerce_fraud\CommerceFraudGenerationServiceInterface;
 use Drupal\state_machine\Event\WorkflowTransitionEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Field\BaseFieldDefinition;
+use Drupal\Core\Entity\ContentEntityBase;
+use Drupal\Core\Entity\EntityTypeInterface;
 
 /**
  * Event subscriber, that acts on the place transition of commerce order
@@ -48,7 +52,10 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
   public function setOrderNumber(WorkflowTransitionEvent $event) {
     /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
     $order = $event->getEntity();
-    $this->commerceFraudGenerationService->generateAndSetFraudCount($order);
+    $rules = \Drupal::entityTypeManager()->getStorage('rules')->loadByProperties(['offer' => 'total_price']);
+    foreach ($rules as $rule) {
+     $this->commerceFraudGenerationService->generateAndSetFraudCount($order,$rule->getOffer());
+    }
   }
 
 }
