@@ -36,6 +36,16 @@ interface FraudGeneratorInterface extends PluginInspectionInterface {
   public function generate();
 
   /**
+   * Gets the offer entity type ID.
+   *
+   * This is the entity type ID of the entity passed to apply().
+   *
+   * @return string
+   *   The offer's entity type ID.
+   */
+  public function getEntityTypeId();
+
+  /**
    * Applies the offer to the given entity.
    *
    * @param \Drupal\Core\Entity\EntityInterface $entity
