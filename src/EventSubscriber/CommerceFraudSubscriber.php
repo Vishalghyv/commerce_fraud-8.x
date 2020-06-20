@@ -52,9 +52,10 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
   public function setOrderNumber(WorkflowTransitionEvent $event) {
     /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
     $order = $event->getEntity();
-    $rules = \Drupal::entityTypeManager()->getStorage('rules')->loadByProperties(['offer' => 'total_price']);
-    foreach ($rules as $rule) {
-     $this->commerceFraudGenerationService->generateAndSetFraudCount($order,$rule->getOffer());
+    $rules = \Drupal::entityTypeManager()->getStorage('rules');
+
+    foreach ($rules->loadMultiple() as $rule) {
+     $this->commerceFraudGenerationService->generateAndSetFraudCount($order,$rule->getRule()->getPluginId(),$rule->getCounter());
     }
   }
 

@@ -42,11 +42,10 @@ class CommerceFraudGenerationService implements CommerceFraudGenerationServiceIn
   /**
    * {@inheritdoc}
    */
-  public function generateAndSetFraudCount(OrderInterface $order, string $rule) {
-    drupal_set_message("This is coming from CommerceFraudGenerationService{$rule}");
+  public function generateAndSetFraudCount(OrderInterface $order, string $rule, int $counter) {
+    drupal_set_message("This is coming from CommerceFraudGenerationService{$rule}{$counter}");
     // $customer_id = $order->getCustomerId();
     $generator = $this->commerceFraudManager->createInstance($rule);
-    drupal_set_message("{$generator->generate()}");
     $generator->apply($order);
     $order_number_formatted = 354;
     return $order_number_formatted;

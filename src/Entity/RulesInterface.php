@@ -63,7 +63,10 @@ interface RulesInterface extends ContentEntityInterface, EntityChangedInterface,
    * @return \Drupal\commerce_promotion\Plugin\Commerce\PromotionOffer\PromotionOfferInterface|null
    *   The offer, or NULL if not yet available.
    */
-  public function getOffer();
+  public function getRule();
+
+  public function getCounter();
+  public function getRuleValue();
 
   /**
    * Sets the offer.
@@ -73,5 +76,5 @@ interface RulesInterface extends ContentEntityInterface, EntityChangedInterface,
    *
    * @return $this
    */
-  public function setOffer(FraudGeneratorInterface $offer);
+  public function setRule(FraudGeneratorInterface $rule);
 }
