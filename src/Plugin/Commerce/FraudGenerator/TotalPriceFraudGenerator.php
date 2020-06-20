@@ -77,13 +77,7 @@ class TotalPriceFraudGenerator extends FraudOfferBase {
    */
   public function defaultConfiguration() {
     return [
-      'buy_quantity' => 1,
-      'buy_conditions' => [],
-      'get_quantity' => 1,
-      'get_conditions' => [],
-      'offer_type' => 'percentage',
-      'offer_percentage' => '0',
-      'offer_amount' => NULL,
+      'buy_price' => 1,
     ] + parent::defaultConfiguration();
   }
 
@@ -97,25 +91,16 @@ class TotalPriceFraudGenerator extends FraudOfferBase {
 
     $form['buy'] = [
       '#type' => 'fieldset',
-      '#title' => $this->t('Customer buys'),
+      '#title' => $this->t('Price limit'),
       '#collapsible' => FALSE,
     ];
-    $form['buy']['quantity'] = [
+    $form['buy']['price'] = [
       '#type' => 'commerce_number',
-      '#title' => $this->t('Quantity'),
-      '#default_value' => $this->configuration['buy_quantity'],
+      '#title' => $this->t('Price'),
+      '#default_value' => $this->configuration['buy_price'],
     ];
 
     return $form;
-  }
-
-  /**
-   * Ajax callback.
-   */
-  public static function ajaxRefresh(array $form, FormStateInterface $form_state) {
-    $parents = $form_state->getTriggeringElement()['#array_parents'];
-    $parents = array_slice($parents, 0, -2);
-    return NestedArray::getValue($form, $parents);
   }
 
   /**
@@ -126,7 +111,6 @@ class TotalPriceFraudGenerator extends FraudOfferBase {
 
     if (!$form_state->getErrors()) {
       $values = $form_state->getValue($form['#parents']);
-      $this->configuration['buy_quantity'] = $values['buy']['quantity'];
     }
   }
 
@@ -144,8 +128,10 @@ class TotalPriceFraudGenerator extends FraudOfferBase {
     /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
     // $order = $entity;
     $order_price = $order->getTotalPrice();
+    drupal_set_message("vnb{$order_price->getCurrencyCode()}");
     $new_price = new Price('1000', 'INR');
-    drupal_set_message("{$new_price}");
+    $price = $this->configuration['buy_price'];
+    drupal_set_message("nv{$new_price}");
     if ($order_price->greaterThan($new_price)) {
     // do something.
     drupal_set_message('Price is greater than 1000 INR increase the fraud count');

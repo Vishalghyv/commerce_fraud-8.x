@@ -48,12 +48,12 @@ class RulesForm extends ContentEntityForm {
     $form['#tree'] = TRUE;
     // By default an offer is preselected on the add form because the field
     // is required. Select an empty value instead, to force the user to choose.
-    if ($this->operation == 'add' && $this->entity->get('offer')->isEmpty()) {
-      if (!empty($form['offer']['widget'][0]['target_plugin_id'])) {
-        $form['offer']['widget'][0]['target_plugin_id']['#empty_value'] = '';
-        $form['offer']['widget'][0]['target_plugin_id']['#default_value'] = '';
-        if (empty($form_state->getValue(['offer', 0, 'target_plugin_id']))) {
-          unset($form['offer']['widget'][0]['target_plugin_configuration']);
+    if ($this->operation == 'add' && $this->entity->get('rule')->isEmpty()) {
+      if (!empty($form['rule']['widget'][0]['target_plugin_id'])) {
+        $form['rule']['widget'][0]['target_plugin_id']['#empty_value'] = '';
+        $form['rule']['widget'][0]['target_plugin_id']['#default_value'] = '';
+        if (empty($form_state->getValue(['rule', 0, 'target_plugin_id']))) {
+          unset($form['rule']['widget'][0]['target_plugin_configuration']);
         }
       }
     }

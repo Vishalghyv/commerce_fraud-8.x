@@ -136,18 +136,34 @@ class Rules extends ContentEntityBase implements RulesInterface {
   /**
    * {@inheritdoc}
    */
-  public function getOffer() {
-    return $this->get('offer')->value;
+  public function getRule() {
+    if (!$this->get('rule')->isEmpty()) {
+      return $this->get('rule')->first()->getTargetInstance();
+    }
   }
 
   /**
    * {@inheritdoc}
    */
-  public function setOffer(FraudGeneratorInterface $offer) {
-    $this->set('offer', [
-      'target_plugin_id' => $offer->getPluginId(),
+  public function getRuleValue() {
+    return $this->get('rule')->plugin_id;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setRule(FraudGeneratorInterface $rule) {
+    $this->set('rule', [
+      'target_plugin_id' => $rule->getPluginId(),
     ]);
     return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getCounter() {
+    return $this->get('counter')->value;
   }
 
   /**
@@ -211,18 +227,14 @@ class Rules extends ContentEntityBase implements RulesInterface {
       ->setDisplayConfigurable('form', TRUE)
       ->setDisplayConfigurable('view', TRUE)
       ->setRequired(TRUE);
-    $commerceFraudManager = \Drupal::service('plugin.manager.commerce_fraud_generator');
-    $generator_plugins = array_map(function ($definition) {
-      return sprintf('%s (%s)', $definition['label'], $definition['description']);
-    }, $commerceFraudManager->getDefinitions());
 
-    $fields['offer'] = BaseFieldDefinition::create('commerce_fraud_item:commerce_fraud_generator')
-      ->setLabel(t('Offer type'))
+    $fields['rule'] = BaseFieldDefinition::create('commerce_fraud_item:commerce_fraud_generator')
+      ->setLabel(t('Rule type'))
       ->setCardinality(1)
       ->setRequired(TRUE)
       ->setDisplayOptions('form', [
         'type' => 'commerce_plugin_select',
-        'weight' => 3,
+        'weight' => -3,
       ]);
 
     $fields['conditions'] = BaseFieldDefinition::create('commerce_plugin_item:commerce_condition')
@@ -231,16 +243,28 @@ class Rules extends ContentEntityBase implements RulesInterface {
       ->setRequired(FALSE)
       ->setDisplayOptions('form', [
         'type' => 'commerce_conditions',
-        'weight' => 3,
+        'weight' => -3,
         'settings' => [
           'entity_types' => ['commerce_order'],
         ],
       ]);
 
-    $fields['status']->setDescription(t('A boolean indicating whether the Rules is published.'))
+    $fields['counter'] = BaseFieldDefinition::create('decimal')
+      ->setLabel(t('Counter'))
+      ->setDescription(t('Fraud count to be increased or decreased on application of this rule'))
+      ->setDefaultValue(1)
+      ->setDisplayOptions('form', [
+        'type' => 'commerce_number',
+        'weight' => -2,
+      ])
+      ->setDisplayConfigurable('form', TRUE)
+      ->setDisplayConfigurable('view', TRUE);
+
+    $fields['status']->setDescription(t('A boolean indicating whether the Rules is active.'))
+      ->setLabel(t('Status'))
       ->setDisplayOptions('form', [
         'type' => 'boolean_checkbox',
-        'weight' => -3,
+        'weight' => -1,
       ]);
 
     $fields['created'] = BaseFieldDefinition::create('created')
