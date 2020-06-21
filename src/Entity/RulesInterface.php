@@ -65,7 +65,14 @@ interface RulesInterface extends ContentEntityInterface, EntityChangedInterface,
    */
   public function getRule();
 
+  /**
+   *
+   */
   public function getCounter();
+
+  /**
+   *
+   */
   public function getRuleValue();
 
   /**
@@ -77,4 +84,5 @@ interface RulesInterface extends ContentEntityInterface, EntityChangedInterface,
    * @return $this
    */
   public function setRule(FraudGeneratorInterface $rule);
+
 }

@@ -4,9 +4,7 @@ namespace Drupal\commerce_fraud\Plugin\Commerce\FraudGenerator;
 
 use Drupal\Component\Plugin\PluginInspectionInterface;
 use Drupal\commerce_order\Entity\OrderInterface;
-use Drupal\commerce_fraud\Entity\RulesInterface;
 use Drupal\Component\Plugin\ConfigurableInterface;
-use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Plugin\PluginFormInterface;
 
 /**
@@ -33,7 +31,6 @@ interface FraudGeneratorInterface extends ConfigurableInterface, PluginFormInter
   /**
    * Generates an order number value object, given the last known order number
    * as parameter.
-   *
    *
    * @return int
    */

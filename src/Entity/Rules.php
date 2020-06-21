@@ -2,7 +2,6 @@
 
 namespace Drupal\commerce_fraud\Entity;
 
-use Drupal\commerce_fraud\CommerceFraudManager;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Entity\ContentEntityBase;
@@ -11,15 +10,6 @@ use Drupal\Core\Entity\EntityPublishedTrait;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\user\UserInterface;
 use Drupal\commerce_fraud\Plugin\Commerce\FraudGenerator\FraudGeneratorInterface;
-
-use Drupal\commerce\ConditionGroup;
-use Drupal\commerce\Entity\CommerceContentEntityBase;
-use Drupal\commerce\Plugin\Commerce\Condition\ConditionInterface;
-use Drupal\commerce\Plugin\Commerce\Condition\ParentEntityAwareInterface;
-use Drupal\commerce_order\Entity\OrderInterface;
-use Drupal\commerce_fraud\Plugin\Commerce\FraudGenerator\FraudOfferInterface;
-use Drupal\Core\Datetime\DrupalDateTime;
-use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
 
 /**
  * Defines the Rules entity.

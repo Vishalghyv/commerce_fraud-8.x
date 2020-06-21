@@ -5,8 +5,6 @@ namespace Drupal\commerce_fraud\Form;
 use Drupal\Core\Entity\ContentEntityForm;
 use Drupal\Core\Form\FormStateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\Core\Link;
-use Drupal\entity\Form\EntityDuplicateFormTrait;
 
 /**
  * Form controller for Rules edit forms.
@@ -42,6 +40,9 @@ class RulesForm extends ContentEntityForm {
     return $form;
   }
 
+  /**
+   *
+   */
   public function form(array $form, FormStateInterface $form_state) {
     $form = parent::form($form, $form_state);
 

@@ -13,7 +13,7 @@ use Drupal\commerce_price\RounderInterface;
 /**
  * Abstract base class for order number generators.
  */
-abstract class FraudGeneratorBase extends PluginBase implements FraudGeneratorInterface,ContainerFactoryPluginInterface {
+abstract class FraudGeneratorBase extends PluginBase implements FraudGeneratorInterface, ContainerFactoryPluginInterface {
 
   /**
    * {@inheritdoc}
@@ -28,7 +28,6 @@ abstract class FraudGeneratorBase extends PluginBase implements FraudGeneratorIn
   public function getDescription() {
     return $this->pluginDefinition['description'];
   }
-
 
   /**
    * The rounder.
@@ -56,6 +55,9 @@ abstract class FraudGeneratorBase extends PluginBase implements FraudGeneratorIn
     $this->rounder = $rounder;
   }
 
+  /**
+   *
+   */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     return new static(
       $configuration,

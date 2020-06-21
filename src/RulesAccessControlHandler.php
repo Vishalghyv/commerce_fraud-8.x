@@ -28,7 +28,6 @@ class RulesAccessControlHandler extends EntityAccessControlHandler {
           return AccessResult::allowedIfHasPermission($account, 'view unpublished rules entities');
         }
 
-
         return AccessResult::allowedIfHasPermission($account, 'view published rules entities');
 
       case 'update':
@@ -50,6 +49,5 @@ class RulesAccessControlHandler extends EntityAccessControlHandler {
   protected function checkCreateAccess(AccountInterface $account, array $context, $entity_bundle = NULL) {
     return AccessResult::allowedIfHasPermission($account, 'add rules entities');
   }
-
 
 }

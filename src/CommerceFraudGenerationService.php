@@ -4,8 +4,6 @@ namespace Drupal\commerce_fraud;
 
 use Drupal\commerce_order\Entity\OrderInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\KeyValueStore\KeyValueFactoryInterface;
-use Drupal\Core\Lock\LockBackendInterface;
 
 /**
  * Default order number service implementation.

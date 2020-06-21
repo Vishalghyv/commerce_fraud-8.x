@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\commerce_fraud\Plugin\Field\FieldWidget\RuleDefaultWidget.
- */
-
 namespace Drupal\snippets\Plugin\Field\FieldWidget;
 
 use Drupal\Core\Field\FieldItemListInterface;
@@ -28,21 +23,22 @@ class RuleDefaultWidget extends WidgetBase {
    */
   public function formElement(FieldItemListInterface $items, $delta, array $element, array &$form, array &$form_state) {
 
-    $element['source_description'] = array(
-          '#title' => t('Description'),
-          '#type' => 'textfield',
-          '#default_value' => isset($items[$delta]->source_description) ? $items[$delta]->source_description : NULL,
-        );
-    $element['source_code'] = array(
-          '#title' => t('Code'),
-          '#type' => 'textarea',
-          '#default_value' => isset($items[$delta]->source_code) ? $items[$delta]->source_code : NULL,
-        );
-    $element['source_lang'] = array(
-          '#title' => t('Source language'),
-          '#type' => 'textfield',
-          '#default_value' => isset($items[$delta]->source_lang) ? $items[$delta]->source_lang : NULL,
-        );
+    $element['source_description'] = [
+      '#title' => t('Description'),
+      '#type' => 'textfield',
+      '#default_value' => isset($items[$delta]->source_description) ? $items[$delta]->source_description : NULL,
+    ];
+    $element['source_code'] = [
+      '#title' => t('Code'),
+      '#type' => 'textarea',
+      '#default_value' => isset($items[$delta]->source_code) ? $items[$delta]->source_code : NULL,
+    ];
+    $element['source_lang'] = [
+      '#title' => t('Source language'),
+      '#type' => 'textfield',
+      '#default_value' => isset($items[$delta]->source_lang) ? $items[$delta]->source_lang : NULL,
+    ];
     return $element;
   }
+
 }
