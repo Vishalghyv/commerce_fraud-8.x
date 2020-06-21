@@ -124,13 +124,16 @@ class TotalPriceFraudGenerator extends FraudOfferBase {
     // $order = $entity;
     $order_price = $order->getTotalPrice();
     drupal_set_message("vnb{$order_price->getCurrencyCode()}");
-    $new_price = new Price('1000', 'INR');
     $price = $this->configuration['buy_price'];
+    $new_price = new Price($price, $order_price->getCurrencyCode());
+
     drupal_set_message("nv{$new_price}");
     if ($order_price->greaterThan($new_price)) {
       // Do something.
       drupal_set_message('Price is greater than 1000 INR increase the fraud count');
+      return TRUE;
     }
+    return FALSE;
   }
 
 }

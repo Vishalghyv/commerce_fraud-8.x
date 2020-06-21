@@ -61,7 +61,7 @@ class FraudCountUpdatedSubscriber implements EventSubscriberInterface {
     drupal_set_message("This is coming from event {$event->getCount()}");
     $fields = [
       'fraud_score' => $event->getCount(),
-      'order_id' => 123,
+      'order_id' => $event->getOrderId(),
       'note' => 'Action by commerce_fraud',
     ];
     $id = $this->connection->insert('commerce_fraud_fraud_score')

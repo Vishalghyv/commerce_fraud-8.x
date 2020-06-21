@@ -72,12 +72,17 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
     $order = $event->getEntity();
     $rules = \Drupal::entityTypeManager()->getStorage('rules');
 
+    $fraud_count = 0;
+
     foreach ($rules->loadMultiple() as $rule) {
-      $this->commerceFraudGenerationService->generateAndSetFraudCount($order, $rule->getRule()->getPluginId(), $rule->getCounter());
+      $action = $this->commerceFraudGenerationService->generateAndSetFraudCount($order, $rule->getRule()->getPluginId());
+      if ($action) {
+        $fraud_count += $rule->getCounter();
+      }
     }
-    drupal_set_message("gd{$order->getOrderNumber()}");
-    $count = 5; 
-    $event = new FraudEvent($count, $order->getOrderNumber());
+    drupal_set_message("gd{$order->id()}");
+
+    $event = new FraudEvent($fraud_count, $order->id());
 
     $this->eventDispatcher->dispatch(FraudEvents::FRAUD_COUNT_UPDATED, $event);
   }

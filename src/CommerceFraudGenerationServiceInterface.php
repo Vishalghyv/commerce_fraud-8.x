@@ -38,6 +38,6 @@ interface CommerceFraudGenerationServiceInterface {
    *   number explicitly set and the site is configured to not override existing
    *   numbers.
    */
-  public function generateAndSetFraudCount(OrderInterface $order, string $rule, int $counter);
+  public function generateAndSetFraudCount(OrderInterface $order, string $rule);
 
 }
