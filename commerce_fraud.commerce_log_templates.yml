@@ -1,0 +1,4 @@
+fraud_comment:
+  category: commerce_order
+  label: 'Comment'
+  template: "<p><b>{{ 'Rule'|t }} :</b> {{ comment }}</p>"

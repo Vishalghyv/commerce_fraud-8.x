@@ -79,6 +79,9 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
       if ($action) {
         $fraud_count += $rule->getCounter();
       }
+      $comment = 'Action by commerce_fraud Price Rule applied Successfully';
+      $logStorage = \Drupal::entityTypeManager()->getStorage('commerce_log');
+      $logStorage->generate($order, 'fraud_comment', ['comment' => $comment])->save();
     }
     drupal_set_message("gd{$order->id()}");
 
