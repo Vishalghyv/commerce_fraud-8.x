@@ -123,7 +123,7 @@ class TotalPriceFraudGenerator extends FraudOfferBase {
     /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
     // $order = $entity;
     $order_price = $order->getTotalPrice();
-    drupal_set_message("vnb{$order_price->getCurrencyCode()}");
+    drupal_set_message("Currency code{$order_price->getCurrencyCode()}");
     $price = $this->configuration['buy_price'];
     $new_price = new Price($price, $order_price->getCurrencyCode());
 

@@ -135,13 +135,6 @@ class Rules extends ContentEntityBase implements RulesInterface {
   /**
    * {@inheritdoc}
    */
-  public function getRuleValue() {
-    return $this->get('rule')->plugin_id;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function setRule(FraudGeneratorInterface $rule) {
     $this->set('rule', [
       'target_plugin_id' => $rule->getPluginId(),
@@ -154,6 +147,29 @@ class Rules extends ContentEntityBase implements RulesInterface {
    */
   public function getCounter() {
     return $this->get('counter')->value;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setCounter(int $counter) {
+    $this->set('counter', $counter);
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getStatus() {
+    return $this->get('status')->value;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setStatus(bool $status) {
+    $this->set('status', $status);
+    return $this;
   }
 
   /**
@@ -225,18 +241,6 @@ class Rules extends ContentEntityBase implements RulesInterface {
       ->setDisplayOptions('form', [
         'type' => 'commerce_plugin_select',
         'weight' => -3,
-      ]);
-
-    $fields['conditions'] = BaseFieldDefinition::create('commerce_plugin_item:commerce_condition')
-      ->setLabel(t('Conditions'))
-      ->setCardinality(BaseFieldDefinition::CARDINALITY_UNLIMITED)
-      ->setRequired(FALSE)
-      ->setDisplayOptions('form', [
-        'type' => 'commerce_conditions',
-        'weight' => -3,
-        'settings' => [
-          'entity_types' => ['commerce_order'],
-        ],
       ]);
 
     $fields['counter'] = BaseFieldDefinition::create('decimal')

@@ -5,8 +5,6 @@ namespace Drupal\commerce_fraud\Controller;
 use Drupal\Core\Controller\ControllerBase;
 
 /**
- * .
- *
  * Controller routines for Lorem ipsum pages.
  */
 class ContentController extends ControllerBase {

@@ -1,62 +1,12 @@
 <?php
+
 /**
  * @file
  * Contains commerce_fraud.module.
  */
 
 use Drupal\Core\Routing\RouteMatchInterface;
-use Drupal\Core\Form\FormStateInterface;
-use Symfony\Component\HttpFoundation\Request;
 
-function fieldAsReadOnly($label, $value) {
-    return [
-      '#type' => 'item',
-      '#wrapper_attributes' => [
-        'class' => ['container-inline'],
-      ],
-      '#title' => $label,
-      '#markup' => $value,
-    ];
-  }
-
-function commerce_fraud_form_alter(&$form, &$form_state, $form_id) {
-  // dpm($form);
-  if($form_id === "commerce_order_default_edit_form"){
-    drupal_set_message("{$form_id}");
-    $form['fraud'] = [
-      '#type' => 'details',
-      '#title' => t('Fraud information'),
-      '#group' => 'advanced',
-      '#open' => TRUE,
-      '#attributes' => [
-        'class' => ['order-form-author'],
-      ],
-      '#weight' => 91,
-    ];
-    $database = \Drupal::database();
-    $result = $database->query("SELECT note FROM {commerce_fraud_fraud_score} ")->fetchAllAssoc('note');
-    foreach ($result as $resul) {
-      foreach ($resul as $resu) {
-      drupal_set_message("{$resu}");
-      }
-    }
-
-  }
-}
-function commerce_fraud_entity_view_alter(array &$build, Drupal\Core\Entity\EntityInterface $entity, \Drupal\Core\Entity\Display\EntityViewDisplayInterface $display) {
-  // dpm($build['ip_address']);
-  dpm($entity->getEntityTypeId());
-  dpm($entity->id());
-  // dpm($display);
-  // if ($build['#view_mode'] == 'full' && isset($build['an_additional_field'])) {
-  //   // Change its weight.
-  //   $build['an_additional_field']['#weight'] = -10;
-
-  //   // Add a #post_render callback to act on the rendered HTML of the entity.
-  //   $build['#post_render'][] = 'my_module_node_post_render';
-  // }
-}
-  
 
 /**
  * Implements hook_help().
@@ -74,80 +24,3 @@ function commerce_fraud_help($route_name, RouteMatchInterface $route_match) {
   }
 }
 
-/**
- * Add points to the fraud count of an order.
- *
- * @param $order
- *   The current commerce_order.
- * @param int $counter
- *   Fraud points to add to the order.
- * @param string $description
- *   The description of the rule.
- */
-function commerce_fraud_write_record($order, $counter, $description = '') {
-  db_insert('commerce_fraud_fraud_score')
-    ->fields([
-      'order_id' => $order->order_id,
-      'fraud_score' => $counter,
-      'note' => $description . ": " . $counter,
-    ])
-    ->execute();
-}
-
-/**
- * Reset the fraud count of an order.
- *
- * @param $order
- *   The current commerce_order.
- */
-function commerce_fraud_reset_fraud_count($order) {
-  db_delete('commerce_fraud_fraud_score')
-    ->condition('order_id', $order->order_id)
-    ->execute();
-}
-
-/**
- * Whitelist condition callback.
- *
- * @param $order
- *
- * @return bool
- */
-function commerce_fraud_is_whitelisted($order) {
-  if ($fraud_score = commerce_fraud_get_fraud_score_for_order_id($order->order_id)) {
-    $whitelist_cap = \Drupal::state()->get('commerce_fraud_greylist_cap', 10);
-    return $fraud_score < $whitelist_cap;
-  }
-  return TRUE;
-}
-
-/**
- * Greylist condition callback.
- *
- * @param $order
- *
- * @return bool
- */
-function commerce_fraud_is_greylisted($order) {
-  if ($fraud_score = commerce_fraud_get_fraud_score_for_order_id($order->order_id)) {
-    $greylist_lower_cap = \Drupal::state()->get('commerce_fraud_greylist_cap', 10);
-    $greylist_upper_cap = \Drupal::state()->get('commerce_fraud_blacklist_cap', 20);
-    return $fraud_score >= $greylist_lower_cap && $fraud_score < $greylist_upper_cap;
-  }
-  return FALSE;
-}
-
-/**
- * Blacklist condition callback.
- *
- * @param $order
- *
- * @return bool
- */
-function commerce_fraud_is_blacklisted($order) {
-  if ($fraud_score = commerce_fraud_get_fraud_score_for_order_id($order->order_id)) {
-    $blacklist_cap = \Drupal::state()->get('commerce_fraud_blacklist_cap', 20);
-    return $fraud_score >= $blacklist_cap;
-  }
-  return FALSE;
-}

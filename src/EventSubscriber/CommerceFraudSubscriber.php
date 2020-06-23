@@ -13,7 +13,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Event subscriber, that acts on the place transition of commerce order
- * entities, in order to generate and set an order number.
+ * entities, in order to generate and set fraud score.
  */
 class CommerceFraudSubscriber implements EventSubscriberInterface {
 
@@ -25,17 +25,17 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
   protected $eventDispatcher;
 
   /**
-   * The order number generation service.
+   * The fraud generation service.
    *
-   * @var \Drupal\commerce_fraud\OrderNumberGenerationServiceInterface
+   * @var \Drupal\commerce_fraud\CommerceFraudGenerationServiceInterface
    */
   protected $commerceFraudGenerationService;
 
   /**
-   * Constructs a new OrderNumberSubscriber object.
+   * Constructs a new FraudSubscriber object.
    *
    * @param \Drupal\commerce_fraud\CommerceFraudGenerationServiceInterface $commerce_fraud_generation_service
-   *   The order number generation service.
+   *   The fraud generation service.
    */
   public function __construct(EventDispatcherInterface $event_dispatcher, CommerceFraudGenerationServiceInterface $commerce_fraud_generation_service) {
     $this->eventDispatcher = $event_dispatcher;
@@ -56,38 +56,40 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
    */
   public static function getSubscribedEvents() {
     $events = [
-      'commerce_order.place.pre_transition' => ['setOrderNumber'],
+      'commerce_order.place.pre_transition' => ['setFraudNumber'],
     ];
     return $events;
   }
 
   /**
-   * Sets the order number on placing the order.
+   * Sets the Fraud number on placing the order.
    *
    * @param \Drupal\state_machine\Event\WorkflowTransitionEvent $event
    *   The transition event.
    */
-  public function setOrderNumber(WorkflowTransitionEvent $event) {
+  public function setFraudNumber(WorkflowTransitionEvent $event) {
     /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
     $order = $event->getEntity();
     $rules = \Drupal::entityTypeManager()->getStorage('rules');
 
-    $fraud_count = 0;
-
     foreach ($rules->loadMultiple() as $rule) {
       $action = $this->commerceFraudGenerationService->generateAndSetFraudCount($order, $rule->getRule()->getPluginId());
-      if ($action) {
-        $fraud_count += $rule->getCounter();
+
+      if (!$action) {
+        continue;
       }
-      $comment = 'Action by commerce_fraud Price Rule applied Successfully';
+      $fraud_count = $rule->getCounter();
+
+      $rule_name = $rule->getRule()->getPluginId();
       $logStorage = \Drupal::entityTypeManager()->getStorage('commerce_log');
-      $logStorage->generate($order, 'fraud_comment', ['comment' => $comment])->save();
+      $logStorage->generate($order, 'fraud_rule_name', ['rule_name' => $rule_name])->save();
+
+      $note = $rule_name . ": " . $fraud_count;
+      $event = new FraudEvent($fraud_count, $order->id(), $note);
+
+      $this->eventDispatcher->dispatch(FraudEvents::FRAUD_COUNT_INSERT, $event);
     }
-    drupal_set_message("gd{$order->id()}");
 
-    $event = new FraudEvent($fraud_count, $order->id());
-
-    $this->eventDispatcher->dispatch(FraudEvents::FRAUD_COUNT_UPDATED, $event);
   }
 
 }

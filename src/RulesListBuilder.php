@@ -19,6 +19,8 @@ class RulesListBuilder extends EntityListBuilder {
   public function buildHeader() {
     $header['id'] = $this->t('Rules ID');
     $header['name'] = $this->t('Name');
+    $header['rule_name'] = $this->t('Rule name');
+    $header['counter'] = $this->t('Counter');
     return $header + parent::buildHeader();
   }
 
@@ -33,6 +35,8 @@ class RulesListBuilder extends EntityListBuilder {
       'entity.rules.edit_form',
       ['rules' => $entity->id()]
     );
+    $row['rule_name'] = $entity->getRule()->getPluginId();
+    $row['counter'] = $entity->getCounter();
     return $row + parent::buildRow($entity);
   }
 
