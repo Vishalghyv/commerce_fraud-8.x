@@ -5,11 +5,12 @@ namespace Drupal\commerce_fraud\EventSubscriber;
 use Drupal\commerce_fraud\CommerceFraudGenerationServiceInterface;
 use Drupal\state_machine\Event\WorkflowTransitionEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-
+use Drupal\commerce_order\Entity\OrderInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Drupal\commerce_fraud\Event\FraudEvents;
 use Drupal\commerce_fraud\Event\FraudEvent;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Database\Connection;
 
 /**
  * Event subscriber, that acts on the place transition of commerce order
@@ -112,13 +113,18 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
   public function checkFraudStatus(OrderInterface $order) {
     $result = $this->connection->select('commerce_fraud_fraud_score', 'f')
       ->fields('f', ['fraud_score'])
-      ->condition('order_id', $event->getOrderId())
+      ->condition('order_id', $order->id())
       ->execute();
     $score = 0;
     foreach ($result as $row) {
       $score += $row->fraud_score;
     }
+    drupal_set_message("Check fraud status");
     dpm($score);
+    if ($score > \Drupal::state()->get('commerce_fraud_greylist_cap', 10)) {
+      $order->setRefreshState('Fraudulent');
+      // $this->eventDispatcher->stopPropagation();
+    }
     return $score;
   }
 

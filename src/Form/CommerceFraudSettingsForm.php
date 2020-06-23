@@ -79,11 +79,11 @@ class CommerceFraudSettingsForm extends ConfigFormBase {
   /**
    *
    */
-  // public function __construct(ConfigFactoryInterface $config_factory, CommerceFraudManager $commerce_fraud_manager) {
-  //   parent::__construct($config_factory);
+  public function __construct(ConfigFactoryInterface $config_factory) {
+    parent::__construct($config_factory);
 
-  //   $this->commerceFraudManager = $commerce_fraud_manager;
-  // }
+    // $this->commerceFraudManager = $commerce_fraud_manager;
+  }
 
   /**
    * 
