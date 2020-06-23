@@ -9,13 +9,15 @@ use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 
 /**
- * .
+ * 
+.
  *
  * Configure example settings for this site.
  */
 class CommerceFraudSettingsForm extends ConfigFormBase {
   /**
-   * .
+   * 
+.
    *
    * Config settings.
    *
@@ -23,16 +25,18 @@ class CommerceFraudSettingsForm extends ConfigFormBase {
    */
 
   /**
-   * .
+   * 
+.
    *
    * The order number generator manager.
    *
    * @var \Drupal\commerce_order_number\OrderNumberGeneratorManager
    */
-  protected $commerceFraudManager;
+  // protected $commerceFraudManager;
 
   /**
-   * .
+   * 
+.
    *
    * {@inheritdoc}
    */
@@ -45,7 +49,8 @@ class CommerceFraudSettingsForm extends ConfigFormBase {
   }
 
   /**
-   * .
+   * 
+.
    *
    * {@inheritdoc}
    */
@@ -58,7 +63,8 @@ class CommerceFraudSettingsForm extends ConfigFormBase {
   }
 
   /**
-   * .
+   * 
+.
    *
    * Constructs a new SettingsForm object.
    *
@@ -73,14 +79,15 @@ class CommerceFraudSettingsForm extends ConfigFormBase {
   /**
    *
    */
-  public function __construct(ConfigFactoryInterface $config_factory, CommerceFraudManager $commerce_fraud_manager) {
-    parent::__construct($config_factory);
+  // public function __construct(ConfigFactoryInterface $config_factory, CommerceFraudManager $commerce_fraud_manager) {
+  //   parent::__construct($config_factory);
 
-    $this->commerceFraudManager = $commerce_fraud_manager;
-  }
+  //   $this->commerceFraudManager = $commerce_fraud_manager;
+  // }
 
   /**
-   * .
+   * 
+.
    *
    * {@inheritdoc}
    */
@@ -88,12 +95,13 @@ class CommerceFraudSettingsForm extends ConfigFormBase {
   /**
    *
    */
-  public static function create(ContainerInterface $container) {
-    return new static($container->get('config.factory'), $container->get('plugin.manager.commerce_fraud_generator'));
-  }
+  // public static function create(ContainerInterface $container) {
+  //   return new static($container->get('config.factory'), $container->get('plugin.manager.commerce_fraud_generator'));
+  // }
 
   /**
-   * .
+   * 
+.
    *
    * {@inheritdoc}
    */
@@ -102,16 +110,16 @@ class CommerceFraudSettingsForm extends ConfigFormBase {
    *
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    $config = $this->config('commerce_fraud.settings');
+    // $config = $this->config('commerce_fraud.settings');
 
-    $form['generator'] = ['#type' => 'details', '#title' => $this->t('Fraud generation'), '#open' => TRUE];
-    drupal_set_message('df');
+    // $form['generator'] = ['#type' => 'details', '#title' => $this->t('Fraud generation'), '#open' => TRUE];
+    // drupal_set_message('df');
 
-    $generator_plugins = array_map(function ($definition) {
-      return sprintf('%s (%s)', $definition['label'], $definition['description']);
-    }, $this->commerceFraudManager->getDefinitions());
+    // $generator_plugins = array_map(function ($definition) {
+    //   return sprintf('%s (%s)', $definition['label'], $definition['description']);
+    // }, $this->commerceFraudManager->getDefinitions());
 
-    $form['generator']['generator'] = ['#type' => 'select', '#options' => $generator_plugins, '#required' => TRUE, '#default_value' => $config->get('generator'), '#title' => $this->t('Generator plugin'), '#description' => $this->t('Choose the plugin to be used for fraud generation.')];
+    // $form['generator']['generator'] = ['#type' => 'select', '#options' => $generator_plugins, '#required' => TRUE, '#default_value' => $config->get('generator'), '#title' => $this->t('Generator plugin'), '#description' => $this->t('Choose the plugin to be used for fraud generation.')];
 
     $form['commerce_fraud_caps'] = ['#type' => 'fieldset', '#collapsible' => TRUE, '#title' => t('Commerce Fraud Caps Settings')];
 
@@ -123,7 +131,8 @@ class CommerceFraudSettingsForm extends ConfigFormBase {
   }
 
   /**
-   * .
+   * 
+.
    */
 
   /**
@@ -138,7 +147,8 @@ class CommerceFraudSettingsForm extends ConfigFormBase {
   }
 
   /**
-   * .
+   * 
+.
    *
    * {@inheritdoc}
    */
@@ -147,7 +157,7 @@ class CommerceFraudSettingsForm extends ConfigFormBase {
    *
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $this->config('commerce_fraud.settings')->set('generator', $form_state->getValue('generator'))->save();
+    // $this->config('commerce_fraud.settings')->set('generator', $form_state->getValue('generator'))->save();
     // Set the submitted configuration setting.
     \Drupal::state()->set('commerce_fraud_blacklist_cap', $form_state->getValue('commerce_fraud_blacklist_cap'));
     \Drupal::state()->set('commerce_fraud_greylist_cap', $form_state->getValue('commerce_fraud_greylist_cap'));

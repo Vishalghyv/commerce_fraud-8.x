@@ -76,7 +76,7 @@ interface RulesInterface extends ContentEntityInterface, EntityChangedInterface,
    *
    * @param int
    */
-  public function setCounter();
+  public function setCounter(int $counter);
 
   /**
    * Gets the Rules Status.

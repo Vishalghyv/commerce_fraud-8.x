@@ -32,14 +32,22 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
   protected $commerceFraudGenerationService;
 
   /**
+   * The event dispatcher service.
+   *
+   * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface
+   */
+  protected $connection;
+
+  /**
    * Constructs a new FraudSubscriber object.
    *
    * @param \Drupal\commerce_fraud\CommerceFraudGenerationServiceInterface $commerce_fraud_generation_service
    *   The fraud generation service.
    */
-  public function __construct(EventDispatcherInterface $event_dispatcher, CommerceFraudGenerationServiceInterface $commerce_fraud_generation_service) {
+  public function __construct(EventDispatcherInterface $event_dispatcher, CommerceFraudGenerationServiceInterface $commerce_fraud_generation_service, Connection $connection) {
     $this->eventDispatcher = $event_dispatcher;
     $this->commerceFraudGenerationService = $commerce_fraud_generation_service;
+    $this->connection = $connection;
   }
 
   /**
@@ -47,7 +55,8 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('event_dispatcher')
+      $container->get('event_dispatcher'),
+      $container->get('database')
     );
   }
 
@@ -90,6 +99,27 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
       $this->eventDispatcher->dispatch(FraudEvents::FRAUD_COUNT_INSERT, $event);
     }
 
+  $this->checkFraudStatus($order);
+
+  }
+
+  /**
+   * Sets the Fraud number on placing the order.
+   *
+   * @param \Drupal\state_machine\Event\WorkflowTransitionEvent $event
+   *   The transition event.
+   */
+  public function checkFraudStatus(OrderInterface $order) {
+    $result = $this->connection->select('commerce_fraud_fraud_score', 'f')
+      ->fields('f', ['fraud_score'])
+      ->condition('order_id', $event->getOrderId())
+      ->execute();
+    $score = 0;
+    foreach ($result as $row) {
+      $score += $row->fraud_score;
+    }
+    dpm($score);
+    return $score;
   }
 
 }
