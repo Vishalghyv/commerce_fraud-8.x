@@ -8,7 +8,6 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Plugin\PluginBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\commerce_price\RounderInterface;
 
 /**
  * Abstract base class for order number generators.
@@ -30,14 +29,7 @@ abstract class FraudGeneratorBase extends PluginBase implements FraudGeneratorIn
   }
 
   /**
-   * The rounder.
-   *
-   * @var \Drupal\commerce_price\RounderInterface
-   */
-  protected $rounder;
-
-  /**
-   * Constructs a new PromotionOfferBase object.
+   * Constructs a new FraudGeneratorBase object.
    *
    * @param array $configuration
    *   A configuration array containing information about the plugin instance.
@@ -45,14 +37,11 @@ abstract class FraudGeneratorBase extends PluginBase implements FraudGeneratorIn
    *   The pluginId for the plugin instance.
    * @param mixed $plugin_definition
    *   The plugin implementation definition.
-   * @param \Drupal\commerce_price\RounderInterface $rounder
-   *   The rounder.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, RounderInterface $rounder) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
     $this->setConfiguration($configuration);
-    $this->rounder = $rounder;
   }
 
   /**
@@ -62,8 +51,7 @@ abstract class FraudGeneratorBase extends PluginBase implements FraudGeneratorIn
     return new static(
       $configuration,
       $plugin_id,
-      $plugin_definition,
-      $container->get('commerce_price.rounder')
+      $plugin_definition
     );
   }
 
@@ -95,11 +83,11 @@ abstract class FraudGeneratorBase extends PluginBase implements FraudGeneratorIn
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     // Wrap the offer configuration in a fieldset by default.
     $form['#type'] = 'fieldset';
-    $form['#title'] = $this->t('Offer');
+    $form['#title'] = $this->t('Rule');
     $form['#collapsible'] = FALSE;
     $form['buy'] = [
       '#type' => 'fieldset',
-      '#title' => $this->t('Customer buys'),
+      '#title' => $this->t('Select property'),
       '#collapsible' => FALSE,
     ];
 

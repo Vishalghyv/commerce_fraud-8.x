@@ -122,7 +122,7 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
     }
     drupal_set_message("Check fraud status");
     dpm($score);
-    if ($score > \Drupal::state()->get('commerce_fraud_greylist_cap', 10)) {
+    if ($score > \Drupal::state()->get('commerce_fraud_blacklist_cap', 10)) {
 
       $order->getState()->applyTransitionById('cancel');
       $order->setRefreshState(OrderInterface::REFRESH_ON_LOAD);

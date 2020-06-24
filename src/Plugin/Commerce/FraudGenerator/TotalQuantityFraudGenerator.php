@@ -5,20 +5,20 @@ namespace Drupal\commerce_fraud\Plugin\Commerce\FraudGenerator;
 use Drupal\Core\Form\FormStateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\commerce_order\Entity\OrderInterface;
-use Drupal\commerce_price\Price;
+
 /**
  * Provides the infinite order number generator.
  *
  * @CommerceFraudGenerator(
- *   id = "total_price",
- *   label = @Translation("Compare Total Price with Given Price"),
- *   description = @Translation("Checks Order Total Price"),
+ *   id = "total_quantity",
+ *   label = @Translation("Compare Total Quantity with Given Quantity"),
+ *   description = @Translation("Checks Order Total Quantity"),
  * )
  */
-class TotalPriceFraudGenerator extends FraudOfferBase {
+class TotalQuantityFraudGenerator extends FraudOfferBase {
 
   /**
-   * Constructs a new Total Price object.
+   * Constructs a new Total Quantity object.
    *
    * @param array $configuration
    *   A configuration array containing information about the plugin instance.
@@ -48,7 +48,7 @@ class TotalPriceFraudGenerator extends FraudOfferBase {
    */
   public function defaultConfiguration() {
     return [
-      'buy_price' => 100,
+      'buy_quantity' => 10,
     ] + parent::defaultConfiguration();
   }
 
@@ -62,14 +62,13 @@ class TotalPriceFraudGenerator extends FraudOfferBase {
 
     $form['buy'] = [
       '#type' => 'fieldset',
-      '#title' => $this->t('Price limit'),
-      '#description' => 'This value will be checked according to currency code of the order',
+      '#title' => $this->t('Quantity limit'),
       '#collapsible' => FALSE,
     ];
-    $form['buy']['price'] = [
+    $form['buy']['quantity'] = [
       '#type' => 'number',
-      '#title' => $this->t('Price'),
-      '#default_value' => $this->configuration['buy_price'],
+      '#title' => $this->t('Quantity'),
+      '#default_value' => $this->configuration['buy_quantity'],
     ];
 
     return $form;
@@ -102,15 +101,15 @@ class TotalPriceFraudGenerator extends FraudOfferBase {
     // $this->assertEntity($entity);
     /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
     // $order = $entity;
-    $order_price = $order->getTotalPrice();
-    drupal_set_message("Currency code{$order_price->getCurrencyCode()}");
-    $price = $this->configuration['buy_price'];
-    $new_price = new Price($price, $order_price->getCurrencyCode());
+    $order_item = $order->getItems();
+    $quantity = 0;
+    foreach ($order_item as $item) {
+      $quantity += number_format($item->getQuantity());
+    }
 
-    drupal_set_message("nv{$new_price}");
-    if ($order_price->greaterThan($new_price)) {
+    if ($quantity > $this->configuration['buy_quantity']) {
       // Do something.
-      drupal_set_message('Price is greater than 1000 INR increase the fraud count');
+      drupal_set_message('Quantity is greater than 10 increase the fraud count');
       return TRUE;
     }
     return FALSE;
