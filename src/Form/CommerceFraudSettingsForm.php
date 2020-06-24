@@ -2,22 +2,18 @@
 
 namespace Drupal\commerce_fraud\Form;
 
-use Drupal\commerce_fraud\CommerceFraudManager;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 
 /**
- * 
-.
+ * .
  *
  * Configure example settings for this site.
  */
 class CommerceFraudSettingsForm extends ConfigFormBase {
   /**
-   * 
-.
+   * .
    *
    * Config settings.
    *
@@ -25,18 +21,16 @@ class CommerceFraudSettingsForm extends ConfigFormBase {
    */
 
   /**
-   * 
-.
+   * .
    *
    * The order number generator manager.
    *
    * @var \Drupal\commerce_order_number\OrderNumberGeneratorManager
    */
-  // protected $commerceFraudManager;
+  // Protected $commerceFraudManager;.
 
   /**
-   * 
-.
+   * .
    *
    * {@inheritdoc}
    */
@@ -49,8 +43,7 @@ class CommerceFraudSettingsForm extends ConfigFormBase {
   }
 
   /**
-   * 
-.
+   * .
    *
    * {@inheritdoc}
    */
@@ -63,8 +56,7 @@ class CommerceFraudSettingsForm extends ConfigFormBase {
   }
 
   /**
-   * 
-.
+   * .
    *
    * Constructs a new SettingsForm object.
    *
@@ -86,8 +78,7 @@ class CommerceFraudSettingsForm extends ConfigFormBase {
   }
 
   /**
-   * 
-.
+   * .
    *
    * {@inheritdoc}
    */
@@ -95,13 +86,12 @@ class CommerceFraudSettingsForm extends ConfigFormBase {
   /**
    *
    */
-  // public static function create(ContainerInterface $container) {
+  // Public static function create(ContainerInterface $container) {
   //   return new static($container->get('config.factory'), $container->get('plugin.manager.commerce_fraud_generator'));
-  // }
+  // }.
 
   /**
-   * 
-.
+   * .
    *
    * {@inheritdoc}
    */
@@ -111,16 +101,12 @@ class CommerceFraudSettingsForm extends ConfigFormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
     // $config = $this->config('commerce_fraud.settings');
-
     // $form['generator'] = ['#type' => 'details', '#title' => $this->t('Fraud generation'), '#open' => TRUE];
     // drupal_set_message('df');
-
     // $generator_plugins = array_map(function ($definition) {
     //   return sprintf('%s (%s)', $definition['label'], $definition['description']);
     // }, $this->commerceFraudManager->getDefinitions());
-
     // $form['generator']['generator'] = ['#type' => 'select', '#options' => $generator_plugins, '#required' => TRUE, '#default_value' => $config->get('generator'), '#title' => $this->t('Generator plugin'), '#description' => $this->t('Choose the plugin to be used for fraud generation.')];
-
     $form['commerce_fraud_caps'] = ['#type' => 'fieldset', '#collapsible' => TRUE, '#title' => t('Commerce Fraud Caps Settings')];
 
     $form['commerce_fraud_caps']['commerce_fraud_greylist_cap'] = ['#type' => 'textfield', '#title' => t('Greylist cap'), '#description' => t('If an order has a fraud score greater than the number specified, it will be considered greylisted.'), '#default_value' => \Drupal::state()->get('commerce_fraud_greylist_cap', 10), '#element_validate' => ['element_validate_integer']];
@@ -131,8 +117,7 @@ class CommerceFraudSettingsForm extends ConfigFormBase {
   }
 
   /**
-   * 
-.
+   * .
    */
 
   /**
@@ -147,8 +132,7 @@ class CommerceFraudSettingsForm extends ConfigFormBase {
   }
 
   /**
-   * 
-.
+   * .
    *
    * {@inheritdoc}
    */

@@ -100,7 +100,7 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
       $this->eventDispatcher->dispatch(FraudEvents::FRAUD_COUNT_INSERT, $event);
     }
 
-  $this->checkFraudStatus($order);
+    $this->checkFraudStatus($order);
 
   }
 

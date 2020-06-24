@@ -6,6 +6,28 @@
  */
 
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Url;
+
+/**
+ * Implements hook_entity_operation().
+ */
+function commerce_fraud_entity_operation_alter(array &$operations, EntityInterface $entity) {
+
+  $entityTypeId = $entity->getEntityTypeId();
+  dpm($entityTypeId);
+  // make sure we are modifying only node entity
+  if ($entityTypeId !== 'commerce_order') {
+    return;
+  }
+  $editUrl = Url::fromRoute('entity.commerce_order.reset_page', ['commerce_order' => $entity->id()]);
+
+  $operations['reset_fraud_score'] = [
+            'title' => t('Reset Fraud'),
+            'weight' => 50,
+            'url' => $editUrl,
+          ];
+}
 
 
 /**
@@ -23,4 +45,3 @@ function commerce_fraud_help($route_name, RouteMatchInterface $route_match) {
     default:
   }
 }
-

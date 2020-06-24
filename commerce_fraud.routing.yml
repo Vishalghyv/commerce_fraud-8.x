@@ -13,3 +13,15 @@ commerce_fraud.settings:
     _title: 'Commerce Fraud: Configuration'
   requirements:
     _permission: 'administer site configuration'
+
+entity.commerce_order.reset_page:
+  path: '/admin/commerce/orders/{commerce_order}/reset_fraud'
+  defaults:
+    _controller: '\Drupal\commerce_fraud\Controller\ResetController::content'
+    _title: 'Reset order'
+  options:
+    parameters:
+      commerce_order:
+        type: 'entity:commerce_order'
+  requirements:
+    _permission: 'administer commerce_order'
