@@ -8,11 +8,13 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Routing\CurrentRouteMatch;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Form\ConfirmFormBase;
+use Drupal\Core\Url;
 
 /**
  * Provides a confirmation form for unlocking orders.
  */
-class OrderResetForm extends FormBase {
+class OrderResetForm extends ConfirmFormBase {
 
   /**
    * The current order.
@@ -21,9 +23,30 @@ class OrderResetForm extends FormBase {
    */
   protected $order_id;
 
-  // public function __construct(CurrentRouteMatch $current_route_match) {
-  //   $this->order_id = $current_route_match->getParameter('commerce_order');
-  // }
+  /**
+   * The current order.
+   *
+   * @var \Drupal\commerce_order\Entity\OrderInterface
+   */
+  protected $order;
+
+  /**
+   * The ID of the item to delete.
+   *
+   * @var string
+   */
+  protected $database;
+
+  public function __construct() {
+    $this->order = \Drupal::routeMatch()->getParameter('commerce_order');
+    $this->order_id = $this->order->id();
+    $this->database = \Drupal::database();
+  }
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('database')
+    );
+  }
 
   /**
    * {@inheritdoc}
@@ -32,64 +55,64 @@ class OrderResetForm extends FormBase {
     return 'commerce_order_reset_form';
   }
 
+
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, FormStateInterface $form_state) {
-    // $customer = $this->order_id;
-    // if ($customer->isAnonymous()) {
-    //   $current_customer = $this->t('anonymous user with the email %email', [
-    //     '%email' => $this->order->getEmail(),
-    //   ]);
-    // }
-    // else {
-    //   // If the display name has been altered to not be the email address,
-    //   // show the email as well.
-    //   if ($customer->getDisplayName() != $customer->getEmail()) {
-    //     $customer_link_text = $this->t('@display (@email)', [
-    //       '@display' => $customer->getDisplayName(),
-    //       '@email' => $customer->getEmail(),
-    //     ]);
-    //   }
-    //   else {
-    //     $customer_link_text = $customer->getDisplayName();
-    //   }
-
-    //   $current_customer = $this->order->getCustomer()->toLink($customer_link_text)->toString();
-    // }
-
-    $form['current_customer'] = [
-      '#type' => 'item',
-      '#markup' => $this->t('The order is currently assigned to @customer.', [
-        '@customer' => $customer,
-      ]),
-    ];
-    // $form += $this->buildCustomerForm($form, $form_state, $this->order);
-
-    $form['actions']['#type'] = 'actions';
-    $form['actions']['submit'] = [
-      '#type' => 'submit',
-      '#value' => $this->t('Reset Fraud Score'),
-      '#button_type' => 'primary',
-    ];
-
-    return $form;
+  public function getQuestion() {
+    return t('Do you want to delete %id?', array('%id' => $this->order_id));
   }
 
   /**
    * {@inheritdoc}
    */
-  public function submitForm(array &$form, FormStateInterface $form_state) {
-    $this->submitCustomerForm($form, $form_state);
+    public function getCancelUrl() {
+      return $this->order->toUrl('collection');
+  }
 
-    $values = $form_state->getValues();
-    /** @var \Drupal\user\UserInterface $user */
-    // $user = $this->userStorage->load($values['uid']);
-    // $this->orderAssignment->assign($this->order, $user);
-    $this->messenger()->addMessage($this->t('The order %label has been assigned to customer %customer.', [
-      '%label' => $this->order->label(),
-      '%customer' => $this->order->getCustomer()->label(),
-    ]));
+  /**
+   * {@inheritdoc}
+   */
+    public function getDescription() {
+    return t('Do this to make the fraud score of the order to 0');
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+    public function getConfirmText() {
+    return t('Reset Fraud Score');
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+    public function getCancelText() {
+    return t('Cancel');
+  }
+
+  /**
+   * {@inheritdoc}
+   *
+   * @param int $id
+   *   (optional) The ID of the item to be deleted.
+   */
+  public function buildForm(array $form, FormStateInterface $form_state) {
+    return parent::buildForm($form, $form_state);
+  }
+
+
+
+
+  /**
+   * {@inheritdoc}
+   */
+  public function submitForm(array &$form, FormStateInterface $form_state) {
+    $this->database->delete('commerce_fraud_fraud_score')
+      ->condition('order_id', $this->order_id)
+      ->execute();
+
+    $this->messenger()->addMessage($this->t('The order has been reseted.'));
     $form_state->setRedirectUrl($this->order->toUrl('collection'));
   }
 

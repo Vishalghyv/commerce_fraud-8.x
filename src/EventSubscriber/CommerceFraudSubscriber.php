@@ -99,8 +99,9 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
 
       $this->eventDispatcher->dispatch(FraudEvents::FRAUD_COUNT_INSERT, $event);
     }
-
-    $this->checkFraudStatus($order);
+    if (\Drupal::state()->get('stop_order', FALSE)) {
+      $this->checkFraudStatus($order);
+    }
 
   }
 
@@ -122,8 +123,9 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
     drupal_set_message("Check fraud status");
     dpm($score);
     if ($score > \Drupal::state()->get('commerce_fraud_greylist_cap', 10)) {
-      $order->setRefreshState('Fraudulent');
-      // $this->eventDispatcher->stopPropagation();
+
+      $order->getState()->applyTransitionById('cancel');
+      $order->setRefreshState(OrderInterface::REFRESH_ON_LOAD);
     }
     return $score;
   }
