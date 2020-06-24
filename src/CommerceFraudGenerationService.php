@@ -4,8 +4,6 @@ namespace Drupal\commerce_fraud;
 
 use Drupal\commerce_order\Entity\OrderInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\KeyValueStore\KeyValueFactoryInterface;
-use Drupal\Core\Lock\LockBackendInterface;
 
 /**
  * Default order number service implementation.
@@ -42,13 +40,12 @@ class CommerceFraudGenerationService implements CommerceFraudGenerationServiceIn
   /**
    * {@inheritdoc}
    */
-  public function generateAndSetFraudCount(OrderInterface $order, string $rule, int $counter) {
-    drupal_set_message("This is coming from CommerceFraudGenerationService{$rule}{$counter}");
-    // $customer_id = $order->getCustomerId();
+  public function generateAndSetFraudCount(OrderInterface $order, string $rule) {
+    drupal_set_message("This is coming from CommerceFraudGenerationService {$rule}");
+
     $generator = $this->commerceFraudManager->createInstance($rule);
-    $generator->apply($order);
-    $order_number_formatted = 354;
-    return $order_number_formatted;
+    $action = $generator->apply($order);
+    return $action;
   }
 
 }

@@ -1,14 +1,7 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\commerce_fraud\Plugin\Field\FieldType\RuleItem.
- */
-
 namespace Drupal\commerce_fraud\Plugin\Field\FieldType;
 
-use Drupal\Core\Field\ConfigFieldItemBase;
-use Drupal\field\FieldInterface;
 use Drupal\commerce\Event\CommerceEvents;
 use Drupal\commerce\Event\ReferenceablePluginTypesEvent;
 use Drupal\Component\Plugin\Derivative\DeriverBase;

@@ -58,23 +58,48 @@ interface RulesInterface extends ContentEntityInterface, EntityChangedInterface,
   public function setCreatedTime($timestamp);
 
   /**
-   * Gets the offer.
+   * Gets the rule.
    *
-   * @return \Drupal\commerce_promotion\Plugin\Commerce\PromotionOffer\PromotionOfferInterface|null
-   *   The offer, or NULL if not yet available.
+   * @return \Drupal\commerce_fraud\Plugin\Commerce\FraudGenerator\FraudGeneratorInterface
    */
   public function getRule();
 
+  /**
+   * Gets the Rules counter.
+   *
+   * @return int
+   */
   public function getCounter();
-  public function getRuleValue();
 
   /**
-   * Sets the offer.
+   * Sets the Rules counter.
    *
-   * @param \Drupal\commerce_promotion\Plugin\Commerce\PromotionOffer\PromotionOfferInterface $offer
-   *   The offer.
+   * @param int
+   */
+  public function setCounter(int $counter);
+
+  /**
+   * Gets the Rules Status.
+   *
+   * @return bool
+   */
+  public function getStatus();
+
+  /**
+   * Sets the Rules Status.
+   *
+   * @param bool
+   */
+  public function setStatus(bool $status);
+
+  /**
+   * Sets the rule.
+   *
+   * @param \Drupal\commerce_fraud\Plugin\Commerce\FraudGenerator\FraudGeneratorInterface $rule
+   *   The rule.
    *
    * @return $this
    */
   public function setRule(FraudGeneratorInterface $rule);
+
 }

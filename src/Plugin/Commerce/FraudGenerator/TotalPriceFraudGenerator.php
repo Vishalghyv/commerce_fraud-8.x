@@ -1,22 +1,14 @@
 <?php
 
 namespace Drupal\commerce_fraud\Plugin\Commerce\FraudGenerator;
-use Drupal\commerce\ConditionGroup;
+
 use Drupal\commerce\ConditionManagerInterface;
-use Drupal\commerce_order\Adjustment;
-use Drupal\commerce_order\Entity\OrderItemInterface;
 use Drupal\commerce_order\PriceSplitterInterface;
-use Drupal\commerce_price\Calculator;
 use Drupal\commerce_price\RounderInterface;
-use Drupal\commerce_fraud\Entity\RulesInterface;
-use Drupal\Component\Utility\Html;
-use Drupal\Component\Utility\NestedArray;
-use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\commerce_order\Entity\OrderInterface;
 use Drupal\commerce_price\Price;
-
 
 /**
  * Provides the infinite order number generator.
@@ -123,19 +115,25 @@ class TotalPriceFraudGenerator extends FraudOfferBase {
     return $order_number;
   }
 
+  /**
+   *
+   */
   public function apply(OrderInterface $order) {
     // $this->assertEntity($entity);
     /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
     // $order = $entity;
     $order_price = $order->getTotalPrice();
-    drupal_set_message("vnb{$order_price->getCurrencyCode()}");
-    $new_price = new Price('1000', 'INR');
+    drupal_set_message("Currency code{$order_price->getCurrencyCode()}");
     $price = $this->configuration['buy_price'];
+    $new_price = new Price($price, $order_price->getCurrencyCode());
+
     drupal_set_message("nv{$new_price}");
     if ($order_price->greaterThan($new_price)) {
-    // do something.
-    drupal_set_message('Price is greater than 1000 INR increase the fraud count');
+      // Do something.
+      drupal_set_message('Price is greater than 1000 INR increase the fraud count');
+      return TRUE;
     }
+    return FALSE;
   }
 
 }

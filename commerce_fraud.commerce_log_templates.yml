@@ -1,0 +1,4 @@
+fraud_rule_name:
+  category: commerce_order
+  label: 'Rule'
+  template: "<p><b>{{ 'Rule'|t }} :</b> {{ rule_name }}</p>"

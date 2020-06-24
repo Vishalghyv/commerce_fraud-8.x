@@ -5,8 +5,6 @@ namespace Drupal\commerce_fraud\Form;
 use Drupal\Core\Entity\ContentEntityForm;
 use Drupal\Core\Form\FormStateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\Core\Link;
-use Drupal\entity\Form\EntityDuplicateFormTrait;
 
 /**
  * Form controller for Rules edit forms.
@@ -42,11 +40,14 @@ class RulesForm extends ContentEntityForm {
     return $form;
   }
 
+  /**
+   *
+   */
   public function form(array $form, FormStateInterface $form_state) {
     $form = parent::form($form, $form_state);
 
     $form['#tree'] = TRUE;
-    // By default an offer is preselected on the add form because the field
+    // By default an rule is preselected on the add form because the field
     // is required. Select an empty value instead, to force the user to choose.
     if ($this->operation == 'add' && $this->entity->get('rule')->isEmpty()) {
       if (!empty($form['rule']['widget'][0]['target_plugin_id'])) {
