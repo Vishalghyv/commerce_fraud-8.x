@@ -7,13 +7,13 @@ use Drupal\Component\Annotation\Plugin;
 /**
  * Defines the fraud generator plugin annotation object.
  *
- * Plugin namespace: Plugin\Commerce\FraudGeneratorBase.
+ * Plugin namespace: Plugin\Commerce\FraudRuleBase.
  *
  * @see plugin_api
  *
  * @Annotation
  */
-class CommerceFraudGenerator extends Plugin {
+class CommerceFraudRule extends Plugin {
 
   /**
    * The plugin ID.
@@ -32,10 +32,7 @@ class CommerceFraudGenerator extends Plugin {
   public $label;
 
   /**
-   * The offer entity type ID.
-   *
-   * This is the entity type ID of the entity passed to the plugin during execution.
-   * For example: 'commerce_order'.
+   * The rule entity type ID.
    *
    * @var string
    */

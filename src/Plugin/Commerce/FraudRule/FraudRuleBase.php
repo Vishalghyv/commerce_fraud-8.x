@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\commerce_fraud\Plugin\Commerce\FraudGenerator;
+namespace Drupal\commerce_fraud\Plugin\Commerce\FraudRule;
 
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Entity\EntityInterface;
@@ -12,7 +12,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 /**
  * Abstract base class for order number generators.
  */
-abstract class FraudGeneratorBase extends PluginBase implements FraudGeneratorInterface, ContainerFactoryPluginInterface {
+abstract class FraudRuleBase extends PluginBase implements FraudRuleInterface, ContainerFactoryPluginInterface {
 
   /**
    * {@inheritdoc}
@@ -45,7 +45,7 @@ abstract class FraudGeneratorBase extends PluginBase implements FraudGeneratorIn
   }
 
   /**
-   *
+   * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     return new static(

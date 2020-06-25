@@ -2,7 +2,7 @@
 
 namespace Drupal\commerce_fraud\EventSubscriber;
 
-use Drupal\commerce_fraud\CommerceFraudGenerationServiceInterface;
+use Drupal\commerce_fraud\CommerceFraudRuleServiceInterface;
 use Drupal\state_machine\Event\WorkflowTransitionEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Drupal\commerce_order\Entity\OrderInterface;
@@ -14,7 +14,7 @@ use Drupal\Core\Database\Connection;
 
 /**
  * Event subscriber, that acts on the place transition of commerce order
- * entities, in order to generate and set fraud score.
+ * entities, in order to set fraud score.
  */
 class CommerceFraudSubscriber implements EventSubscriberInterface {
 
@@ -26,28 +26,30 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
   protected $eventDispatcher;
 
   /**
-   * The fraud generation service.
+   * The fraud rule service.
    *
-   * @var \Drupal\commerce_fraud\CommerceFraudGenerationServiceInterface
+   * @var \Drupal\commerce_fraud\CommerceFraudRuleServiceInterface
    */
-  protected $commerceFraudGenerationService;
+  protected $commerceFraudRuleService;
 
   /**
-   * The event dispatcher service.
+   * The database connection.
    *
-   * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface
+   * @var \Drupal\Core\Database\Connection
    */
   protected $connection;
 
   /**
    * Constructs a new FraudSubscriber object.
    *
-   * @param \Drupal\commerce_fraud\CommerceFraudGenerationServiceInterface $commerce_fraud_generation_service
+   * @param \Drupal\commerce_fraud\CommerceFraudRuleServiceInterface $commerce_fraud_rule_service
    *   The fraud generation service.
+   * @param $commerce_fraud_rule_service
+   * @param $connection
    */
-  public function __construct(EventDispatcherInterface $event_dispatcher, CommerceFraudGenerationServiceInterface $commerce_fraud_generation_service, Connection $connection) {
+  public function __construct(EventDispatcherInterface $event_dispatcher, CommerceFraudRuleServiceInterface $commerce_fraud_rule_service, Connection $connection) {
     $this->eventDispatcher = $event_dispatcher;
-    $this->commerceFraudGenerationService = $commerce_fraud_generation_service;
+    $this->commerceFraudRuleService = $commerce_fraud_rule_service;
     $this->connection = $connection;
   }
 
@@ -66,24 +68,24 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
    */
   public static function getSubscribedEvents() {
     $events = [
-      'commerce_order.place.pre_transition' => ['setFraudNumber'],
+      'commerce_order.place.pre_transition' => ['setFraudScore'],
     ];
     return $events;
   }
 
   /**
-   * Sets the Fraud number on placing the order.
+   * Sets the Fraud score on placing the order.
    *
    * @param \Drupal\state_machine\Event\WorkflowTransitionEvent $event
    *   The transition event.
    */
-  public function setFraudNumber(WorkflowTransitionEvent $event) {
+  public function setFraudScore(WorkflowTransitionEvent $event) {
     /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
     $order = $event->getEntity();
     $rules = \Drupal::entityTypeManager()->getStorage('rules');
 
     foreach ($rules->loadMultiple() as $rule) {
-      $action = $this->commerceFraudGenerationService->generateAndSetFraudCount($order, $rule->getRule()->getPluginId());
+      $action = $this->commerceFraudRuleService->setFraudCount($order, $rule->getRule()->getPluginId());
 
       if (!$action) {
         continue;
@@ -99,35 +101,83 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
 
       $this->eventDispatcher->dispatch(FraudEvents::FRAUD_COUNT_INSERT, $event);
     }
-    if (\Drupal::state()->get('stop_order', FALSE)) {
-      $this->checkFraudStatus($order);
+
+    $updated_fraud_score = $this->getFraudScore($order->id());
+
+    if ($updated_fraud_score <= \Drupal::state()->get('commerce_fraud_blacklist_cap', 10)) {
+      return;
     }
+
+    if (\Drupal::state()->get('stop_order', FALSE)) {
+      $this->cancelFraudStatus($order);
+    }
+
+    $this->sendBlackListedOrderMail($order, $updated_fraud_score);
 
   }
 
   /**
-   * Sets the Fraud number on placing the order.
+   * Returns the fraud score.
    *
-   * @param \Drupal\state_machine\Event\WorkflowTransitionEvent $event
-   *   The transition event.
+   * @param order_id
+   *
+   * @return int
    */
-  public function checkFraudStatus(OrderInterface $order) {
+  public function getFraudScore(int $order_id) {
     $result = $this->connection->select('commerce_fraud_fraud_score', 'f')
       ->fields('f', ['fraud_score'])
-      ->condition('order_id', $order->id())
+      ->condition('order_id', $order_id)
       ->execute();
     $score = 0;
     foreach ($result as $row) {
       $score += $row->fraud_score;
     }
-    drupal_set_message("Check fraud status");
-    dpm($score);
-    if ($score > \Drupal::state()->get('commerce_fraud_blacklist_cap', 10)) {
-
-      $order->getState()->applyTransitionById('cancel');
-      $order->setRefreshState(OrderInterface::REFRESH_ON_LOAD);
-    }
     return $score;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function cancelFraudStatus(OrderInterface $order) {
+
+    $order->getState()->applyTransitionById('cancel');
+    $order->setRefreshState(OrderInterface::REFRESH_ON_LOAD);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function sendBlackListedOrderMail(OrderInterface $order, int $fraud_score) {
+    $mailManager = \Drupal::service('plugin.manager.mail');
+
+    $module = 'commerce_fraud';
+    $key = 'send_blacklist';
+    $to = \Drupal::state()->get('send_email', \Drupal::config('system.site')->get('mail'));
+    $params['message'] = $this->getMailMessage($order, $fraud_score);
+    $params['order_id'] = $order->id();
+    $langcode = \Drupal::languageManager()->getDefaultLanguage()->getId();
+    $send = TRUE;
+
+    $result = $mailManager->mail($module, $key, $to, $langcode, $params, NULL, $send);
+
+    if ($result['result']) {
+      drupal_set_message(t('Your message has been sent.'));
+      return;
+    }
+    drupal_set_message(t('There was a problem sending your message and it was not sent.'), 'error');
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getMailMessage(OrderInterface $order, int $fraud_score) {
+    $breakdown = '';
+    $breakdown .= '<br>Order With order Uid ' . $order->getCustomerId();
+    $breakdown .= '<br>Current order status is ' . $order->getState()->getId();
+    $breakdown .= '<br>This order was placed at ' . date('m/d/Y H:i:s', $order->getPlacedTime());
+    $breakdown .= '<br> With Ip address ' . $order->getIpAddress() . '<br>';
+    $breakdown .= '<br> With fraud score: ' . $fraud_score . '<br>';
+    return $breakdown;
   }
 
 }

@@ -1,24 +1,31 @@
 <?php
 
-namespace Drupal\commerce_fraud\Plugin\Commerce\FraudGenerator;
+namespace Drupal\commerce_fraud\Plugin\Commerce\FraudRule;
 
 use Drupal\Core\Form\FormStateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\commerce_order\Entity\OrderInterface;
-use Drupal\commerce_price\Price;
+
 /**
- * Provides the infinite order number generator.
+ * Provides the fraud rule.
  *
- * @CommerceFraudGenerator(
- *   id = "total_price",
- *   label = @Translation("Compare Total Price with Given Price"),
- *   description = @Translation("Checks Order Total Price"),
+ * @CommerceFraudRule(
+ *   id = "last_minute",
+ *   label = @Translation("Compare Last Minute with Given Minute"),
+ *   description = @Translation("Checks Order Last Minute"),
  * )
  */
-class TotalPriceFraudGenerator extends FraudOfferBase {
+class LastMinuteFraudRule extends FraudOfferBase {
 
   /**
-   * Constructs a new Total Price object.
+   * The ID of the item to delete.
+   *
+   * @var string
+   */
+  protected $database;
+
+  /**
+   * Constructs a new Last Minute object.
    *
    * @param array $configuration
    *   A configuration array containing information about the plugin instance.
@@ -29,6 +36,7 @@ class TotalPriceFraudGenerator extends FraudOfferBase {
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
+    $this->database = \Drupal::database();
 
   }
 
@@ -39,7 +47,8 @@ class TotalPriceFraudGenerator extends FraudOfferBase {
     return new static(
       $configuration,
       $plugin_id,
-      $plugin_definition
+      $plugin_definition,
+      $container->get('database')
     );
   }
 
@@ -48,7 +57,7 @@ class TotalPriceFraudGenerator extends FraudOfferBase {
    */
   public function defaultConfiguration() {
     return [
-      'buy_price' => 100,
+      'last_minute' => 5,
     ] + parent::defaultConfiguration();
   }
 
@@ -60,16 +69,15 @@ class TotalPriceFraudGenerator extends FraudOfferBase {
     // Remove the main fieldset.
     $form['#type'] = 'container';
 
-    $form['buy'] = [
+    $form['time'] = [
       '#type' => 'fieldset',
-      '#title' => $this->t('Price limit'),
-      '#description' => 'This value will be checked according to currency code of the order',
+      '#title' => $this->t('Time limit'),
       '#collapsible' => FALSE,
     ];
-    $form['buy']['price'] = [
+    $form['time']['last_minute'] = [
       '#type' => 'number',
-      '#title' => $this->t('Price'),
-      '#default_value' => $this->configuration['buy_price'],
+      '#title' => $this->t('Last Minute'),
+      '#default_value' => $this->configuration['last_minute'],
     ];
 
     return $form;
@@ -83,37 +91,42 @@ class TotalPriceFraudGenerator extends FraudOfferBase {
 
     if (!$form_state->getErrors()) {
       $values = $form_state->getValue($form['#parents']);
+      $this->configuration['last_minute'] = $values['time']['last_minute'];
     }
   }
 
   /**
-   * @inheritDoc
-   */
-  public function generate() {
-    drupal_set_message('This message is from plugin rules');
-    $order_number = 5;
-    return $order_number;
-  }
-
-  /**
-   *
+   * {@inheritdoc}
    */
   public function apply(OrderInterface $order) {
-    // $this->assertEntity($entity);
-    /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
-    // $order = $entity;
-    $order_price = $order->getTotalPrice();
-    drupal_set_message("Currency code{$order_price->getCurrencyCode()}");
-    $price = $this->configuration['buy_price'];
-    $new_price = new Price($price, $order_price->getCurrencyCode());
+    $customer_id = $order->getCustomerId();
+    dpm($customer_id);
+    $query = $this->database->select('commerce_order', 'o')
+      ->fields('o', ['order_id'])
+      ->condition('uid', $customer_id, '=')
+      ->condition('state', ['completed'], 'IN')
+      ->condition('placed', $this->timestampFromMinutes($this->configuration['last_minute']), '>=');
 
-    drupal_set_message("nv{$new_price}");
-    if ($order_price->greaterThan($new_price)) {
+    if (!empty($query->execute()->fetchAssoc())) {
       // Do something.
-      drupal_set_message('Price is greater than 1000 INR increase the fraud count');
+      drupal_set_message('Last order was placed within 5 minutes increase the fraud count');
       return TRUE;
     }
     return FALSE;
+  }
+
+  /**
+   * Returns a timestamp matching x days before today.
+   *
+   * @param $minutes
+   *
+   * @return int
+   */
+  public function timestampFromMinutes($minutes) {
+    $date = new \DateTimeImmutable();
+    $date = $date->modify('- ' . $minutes . ' minutes');
+    dpm($date->getTimestamp());
+    return $date->getTimestamp();
   }
 
 }

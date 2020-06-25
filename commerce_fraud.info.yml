@@ -3,7 +3,6 @@ type: module
 description: 'Detects potentially fraudulous orders'
 core: '8.x'
 package: Commerce
-version: 2.0
 dependencies:
   - action
   - commerce

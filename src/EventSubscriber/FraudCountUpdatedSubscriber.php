@@ -13,17 +13,16 @@ use Drupal\Core\Database\Connection;
 class FraudCountUpdatedSubscriber implements EventSubscriberInterface {
 
   /**
-   * The event dispatcher service.
+   * The database connection.
    *
-   * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface
+   * @var \Drupal\Core\Database\Connection
    */
   protected $connection;
 
   /**
-   * Constructs a new OrderNumberSubscriber object.
+   * Constructs a new FraudCountSubscriber object.
    *
-   * @param \Drupal\commerce_fraud\CommerceFraudGenerationServiceInterface $commerce_fraud_generation_service
-   *   The order number generation service.
+   * @param $connection
    */
   public function __construct(Connection $connection) {
     $this->connection = $connection;
@@ -50,10 +49,7 @@ class FraudCountUpdatedSubscriber implements EventSubscriberInterface {
   }
 
   /**
-   * Sets the order number on placing the order.
-   *
-   * @param \Drupal\state_machine\Event\WorkflowTransitionEvent $event
-   *   The transition event.
+   * {@inheritdoc}
    */
   public function addFraudCount(FraudEvent $event) {
     drupal_set_message("This is coming from event {$event->getCount()}");
@@ -70,10 +66,7 @@ class FraudCountUpdatedSubscriber implements EventSubscriberInterface {
   }
 
   /**
-   * Sets the order number on placing the order.
-   *
-   * @param \Drupal\state_machine\Event\WorkflowTransitionEvent $event
-   *   The transition event.
+   * {@inheritdoc}
    */
   public function changeFraudCount(FraudEvent $event) {
 

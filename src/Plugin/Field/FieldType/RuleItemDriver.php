@@ -52,7 +52,7 @@ class RuleItemDriver extends DeriverBase implements ContainerDeriverInterface {
    */
   public function getDerivativeDefinitions($base_plugin_definition) {
     $plugin_types = [
-      'commerce_fraud_generator' => $this->t('Rules'),
+      'commerce_fraud_rule' => $this->t('Rules'),
     ];
     // Core has no way to list plugin types, so each referenceable plugin
     // type needs to register itself via the event.

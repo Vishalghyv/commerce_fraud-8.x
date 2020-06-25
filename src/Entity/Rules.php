@@ -9,7 +9,7 @@ use Drupal\Core\Entity\EntityChangedTrait;
 use Drupal\Core\Entity\EntityPublishedTrait;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\user\UserInterface;
-use Drupal\commerce_fraud\Plugin\Commerce\FraudGenerator\FraudGeneratorInterface;
+use Drupal\commerce_fraud\Plugin\Commerce\FraudRule\FraudRuleInterface;
 
 /**
  * Defines the Rules entity.
@@ -28,10 +28,10 @@ use Drupal\commerce_fraud\Plugin\Commerce\FraudGenerator\FraudGeneratorInterface
  *       "default" = "Drupal\commerce_fraud\Form\RulesForm",
  *       "add" = "Drupal\commerce_fraud\Form\RulesForm",
  *       "edit" = "Drupal\commerce_fraud\Form\RulesForm",
- *       "delete" = "Drupal\commerce_fraud\Form\RulesDeleteForm",
+ *       "delete" = "Drupal\Core\Entity\ContentEntityDeleteForm",
  *     },
  *     "route_provider" = {
- *       "html" = "Drupal\commerce_fraud\RulesHtmlRouteProvider",
+ *       "default" = "Drupal\entity\Routing\AdminHtmlRouteProvider",
  *     },
  *     "access" = "Drupal\commerce_fraud\RulesAccessControlHandler",
  *   },
@@ -47,13 +47,12 @@ use Drupal\commerce_fraud\Plugin\Commerce\FraudGenerator\FraudGeneratorInterface
  *     "published" = "status",
  *   },
  *   links = {
- *     "canonical" = "/admin/structure/rules/{rules}",
- *     "add-form" = "/admin/structure/rules/add",
- *     "edit-form" = "/admin/structure/rules/{rules}/edit",
- *     "delete-form" = "/admin/structure/rules/{rules}/delete",
- *     "collection" = "/admin/structure/rules",
+ *     "canonical" = "/admin/commerce/rules/{rules}",
+ *     "add-form" = "/admin/commerce/rules/add",
+ *     "edit-form" = "/admin/commerce/rules/{rules}/edit",
+ *     "delete-form" = "/admin/commerce/rules/{rules}/delete",
+ *     "collection" = "/admin/commerce/rules",
  *   },
- *   field_ui_base_route = "rules.settings"
  * )
  */
 class Rules extends ContentEntityBase implements RulesInterface {
@@ -135,7 +134,7 @@ class Rules extends ContentEntityBase implements RulesInterface {
   /**
    * {@inheritdoc}
    */
-  public function setRule(FraudGeneratorInterface $rule) {
+  public function setRule(FraudRuleInterface $rule) {
     $this->set('rule', [
       'target_plugin_id' => $rule->getPluginId(),
     ]);
@@ -234,7 +233,7 @@ class Rules extends ContentEntityBase implements RulesInterface {
       ->setDisplayConfigurable('view', TRUE)
       ->setRequired(TRUE);
 
-    $fields['rule'] = BaseFieldDefinition::create('commerce_fraud_item:commerce_fraud_generator')
+    $fields['rule'] = BaseFieldDefinition::create('commerce_fraud_item:commerce_fraud_rule')
       ->setLabel(t('Rule type'))
       ->setCardinality(1)
       ->setRequired(TRUE)

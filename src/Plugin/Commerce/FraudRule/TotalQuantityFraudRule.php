@@ -1,36 +1,21 @@
 <?php
 
-namespace Drupal\commerce_fraud\Plugin\Commerce\FraudGenerator;
+namespace Drupal\commerce_fraud\Plugin\Commerce\FraudRule;
 
 use Drupal\Core\Form\FormStateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\commerce_order\Entity\OrderInterface;
 
 /**
- * Provides the infinite order number generator.
+ * Provides the fraud rule.
  *
- * @CommerceFraudGenerator(
+ * @CommerceFraudRule(
  *   id = "total_quantity",
  *   label = @Translation("Compare Total Quantity with Given Quantity"),
  *   description = @Translation("Checks Order Total Quantity"),
  * )
  */
-class TotalQuantityFraudGenerator extends FraudOfferBase {
-
-  /**
-   * Constructs a new Total Quantity object.
-   *
-   * @param array $configuration
-   *   A configuration array containing information about the plugin instance.
-   * @param string $plugin_id
-   *   The pluginId for the plugin instance.
-   * @param mixed $plugin_definition
-   *   The plugin implementation definition.
-   */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition);
-
-  }
+class TotalQuantityFraudRule extends FraudOfferBase {
 
   /**
    * {@inheritdoc}
@@ -82,25 +67,14 @@ class TotalQuantityFraudGenerator extends FraudOfferBase {
 
     if (!$form_state->getErrors()) {
       $values = $form_state->getValue($form['#parents']);
+      $this->configuration['buy_quantity'] = $values['buy']['quantity'];
     }
   }
 
   /**
-   * @inheritDoc
-   */
-  public function generate() {
-    drupal_set_message('This message is from plugin rules');
-    $order_number = 5;
-    return $order_number;
-  }
-
-  /**
-   *
+   * {@inheritdoc}
    */
   public function apply(OrderInterface $order) {
-    // $this->assertEntity($entity);
-    /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
-    // $order = $entity;
     $order_item = $order->getItems();
     $quantity = 0;
     foreach ($order_item as $item) {

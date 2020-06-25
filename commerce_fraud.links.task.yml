@@ -1,9 +1,4 @@
 # Rules routing definition
-rules.settings_tab:
-  route_name: rules.settings
-  title: 'Settings'
-  base_route: rules.settings
-
 entity.rules.canonical:
   route_name: entity.rules.canonical
   base_route: entity.rules.canonical

@@ -1,0 +1,41 @@
+<?php
+
+namespace Drupal\commerce_fraud\Plugin\Commerce\FraudRule;
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\commerce_order\Entity\OrderInterface;
+
+/**
+ * Provides the fraud rule.
+ *
+ * @CommerceFraudRule(
+ *   id = "anonymous_user",
+ *   label = @Translation("Check if order by Anonymous User"),
+ *   description = @Translation("Checks if Order by Anonymous User"),
+ * )
+ */
+class AnonymousUserFraudRule extends FraudOfferBase {
+
+  /**
+   * {@inheritdoc}
+   */
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
+    $form += parent::buildConfigurationForm($form, $form_state);
+    return $form;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function apply(OrderInterface $order) {
+    $customer = $order->getCustomer();
+
+    if ($customer->isAnonymous()) {
+      // Do something.
+      drupal_set_message('Customer for the order is either deleted or anonymous increase the fraud count');
+      return TRUE;
+    }
+    return FALSE;
+  }
+
+}

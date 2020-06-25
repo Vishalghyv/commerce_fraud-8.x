@@ -41,14 +41,14 @@ class RulesForm extends ContentEntityForm {
   }
 
   /**
-   *
+   * {@inheritdoc}
    */
   public function form(array $form, FormStateInterface $form_state) {
     $form = parent::form($form, $form_state);
 
     $form['#tree'] = TRUE;
     // By default an rule is preselected on the add form because the field
-    // is required. Select an empty value instead, to force the user to choose.
+    // is required. Select an empty value instead, to force the admin to choose.
     if ($this->operation == 'add' && $this->entity->get('rule')->isEmpty()) {
       if (!empty($form['rule']['widget'][0]['target_plugin_id'])) {
         $form['rule']['widget'][0]['target_plugin_id']['#empty_value'] = '';
@@ -58,22 +58,6 @@ class RulesForm extends ContentEntityForm {
         }
       }
     }
-
-    $translating = !$this->isDefaultFormLangcode($form_state);
-    $hide_non_translatable_fields = $this->entity->isDefaultTranslationAffectedOnly();
-    // The second column is empty when translating with non-translatable
-    // fields hidden, so there's no reason to add it.
-    if ($translating && $hide_non_translatable_fields) {
-      return $form;
-    }
-
-    $form['#theme'] = ['commerce_promotion_form'];
-    $form['#attached']['library'][] = 'commerce_promotion/form';
-    $form['advanced'] = [
-      '#type' => 'container',
-      '#attributes' => ['class' => ['entity-meta']],
-      '#weight' => 99,
-    ];
 
     return $form;
   }

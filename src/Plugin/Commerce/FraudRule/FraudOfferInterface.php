@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\commerce_fraud\Plugin\Commerce\FraudGenerator;
+namespace Drupal\commerce_fraud\Plugin\Commerce\FraudRule;
 
 /**
  * Defines the interface for order item offers.
@@ -8,4 +8,4 @@ namespace Drupal\commerce_fraud\Plugin\Commerce\FraudGenerator;
  * Order item offers have conditions, which are used to determine which
  * order items should be passed to the offer.
  */
-interface FraudOfferInterface extends FraudGeneratorInterface {}
+interface FraudOfferInterface extends FraudRuleInterface {}
