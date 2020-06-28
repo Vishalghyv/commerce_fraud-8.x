@@ -100,7 +100,7 @@ class LastMinuteFraudRule extends FraudOfferBase {
    */
   public function apply(OrderInterface $order) {
     $customer_id = $order->getCustomerId();
-    dpm($customer_id);
+
     $query = $this->database->select('commerce_order', 'o')
       ->fields('o', ['order_id'])
       ->condition('uid', $customer_id, '=')

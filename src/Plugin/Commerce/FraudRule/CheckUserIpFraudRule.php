@@ -65,7 +65,7 @@ class CheckUserIpFraudRule extends FraudOfferBase {
    */
   public function apply(OrderInterface $order) {
     $customer_ip = $order->getIpAddress();
-    dpm($customer_id);
+    // dpm($customer_id);
     $orders_count = db_select('commerce_order', 'o')
       ->fields('o', ['hostname'])
       ->condition('uid', $order->getCustomerId(), '=')

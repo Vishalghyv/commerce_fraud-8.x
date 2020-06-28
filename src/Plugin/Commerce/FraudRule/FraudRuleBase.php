@@ -85,11 +85,6 @@ abstract class FraudRuleBase extends PluginBase implements FraudRuleInterface, C
     $form['#type'] = 'fieldset';
     $form['#title'] = $this->t('Rule');
     $form['#collapsible'] = FALSE;
-    $form['buy'] = [
-      '#type' => 'fieldset',
-      '#title' => $this->t('Select property'),
-      '#collapsible' => FALSE,
-    ];
 
     return $form;
   }

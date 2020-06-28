@@ -85,7 +85,11 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
     $rules = \Drupal::entityTypeManager()->getStorage('rules');
 
     foreach ($rules->loadMultiple() as $rule) {
-      $action = $this->commerceFraudRuleService->setFraudCount($order, $rule->getRule()->getPluginId());
+
+      if(!$rule->getStatus()) {
+        continue;
+      }
+      $action = $rule->getRule()->apply($order);
 
       if (!$action) {
         continue;
@@ -139,8 +143,11 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
    * {@inheritdoc}
    */
   public function cancelFraudStatus(OrderInterface $order) {
-
+    // dpm($order->getState()->getPossibleValues());
     $order->getState()->applyTransitionById('cancel');
+    $order->getState()->setValue(['value' => 'fraudulent']);
+    $logStorage = \Drupal::entityTypeManager()->getStorage('commerce_log');
+    $logStorage->generate($order, 'order_fraud')->save();
     $order->setRefreshState(OrderInterface::REFRESH_ON_LOAD);
   }
 

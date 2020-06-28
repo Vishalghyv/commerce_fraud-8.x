@@ -79,7 +79,7 @@ class ProductAttributeFraudRule extends FraudOfferBase {
     ];
     $form['product']['conditions'] = [
       '#type' => 'commerce_conditions',
-      '#title' => $this->t('Matching any of the following'),
+      '#title' => $this->t('Applies to'),
       '#parent_entity_type' => 'rules',
       '#entity_types' => ['commerce_order_item'],
       '#default_value' => $this->configuration['product_conditions'],
@@ -96,6 +96,7 @@ class ProductAttributeFraudRule extends FraudOfferBase {
 
     if (!$form_state->getErrors()) {
       $values = $form_state->getValue($form['#parents']);
+
       $this->configuration['product_conditions'] = $values['product']['conditions'];
     }
   }
@@ -104,22 +105,12 @@ class ProductAttributeFraudRule extends FraudOfferBase {
    *
    */
   public function apply(OrderInterface $order) {
-    // $this->assertEntity($entity);
-    /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
-    // $order = $entity;
-    $order_item = $order->getItems();
-    $quantity = 0;
+    $order_items = $order->getItems();
+
     $product_conditions = $this->buildConditionGroup($this->configuration['product_conditions']);
-    dpm($product_conditions);
-    // Foreach ($order_item as $item) {
-    //   $quantity += number_format($item->getQuantity());
-    // }
-    // If ($quantity > $this->configuration['buy_quantity']) {
-    //   // Do something.
-    //   drupal_set_message('Quantity is greater than 10 increase the fraud count');
-    //   return TRUE;
-    // }.
-    return TRUE;
+    $applied = $this->evaluateConditions($order_items, $product_conditions);
+
+    return $applied;
   }
 
   /**
@@ -140,6 +131,17 @@ class ProductAttributeFraudRule extends FraudOfferBase {
     }
 
     return new ConditionGroup($conditions, 'OR');
+  }
+
+  protected function evaluateConditions(array $order_items, ConditionGroup $conditions) {
+
+    foreach ($order_items as $index => $order_item) {
+      if ($conditions->evaluate($order_item)) {
+        return TRUE;
+      }
+    }
+
+    return FALSE;
   }
 
 }

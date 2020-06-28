@@ -57,8 +57,21 @@ function commerce_fraud_mail($key, &$message, $params) {
     case 'send_blacklist':
       $message['from'] = \Drupal::config('system.site')->get('mail');
       $message['subject'] = t('New Blacklisted order - order id: @order_id', ['@order_id' => $params['order_id']], $options);
-      dpm($params['order_id']);
       $message['body'][] = $params['message'];
       break;
   }
+}
+
+/**
+ * Change the label for the "Completed" state to "Captured", for the `order_default` workflow.
+ *
+ * @param array $workflows
+ *   Workflow definitions, keyed by plugin ID.
+ */
+function commerce_fraud_workflows_alter(array &$workflows) {
+  $workflows['order_default']['states']['fraudulent']['label'] = 'Fraudulent';
+  // $workflows['order_default']['transitions']['fraud']['label'] = '';
+  // $workflows['order_default']['transitions']['fraud']['from'] = ['draft'];
+  // $workflows['order_default']['transitions']['fraud']['to'] = 'fraudulent';
+  // dpm($workflows);
 }
