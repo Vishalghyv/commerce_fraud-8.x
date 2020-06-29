@@ -14,7 +14,7 @@ use Drupal\commerce_order\Entity\OrderInterface;
  *   description = @Translation("Checks if Order by Anonymous User"),
  * )
  */
-class AnonymousUserFraudRule extends FraudOfferBase {
+class AnonymousUserFraudRule extends FraudRuleBase {
 
   /**
    * {@inheritdoc}

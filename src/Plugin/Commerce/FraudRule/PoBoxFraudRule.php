@@ -15,7 +15,7 @@ use Drupal\commerce_order\Entity\OrderInterface;
  *   description = @Translation("Checks Order Address for Po Box"),
  * )
  */
-class PoBoxFraudRule extends FraudOfferBase {
+class PoBoxFraudRule extends FraudRuleBase {
 
   /**
    * {@inheritdoc}

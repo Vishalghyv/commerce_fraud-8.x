@@ -70,8 +70,4 @@ function commerce_fraud_mail($key, &$message, $params) {
  */
 function commerce_fraud_workflows_alter(array &$workflows) {
   $workflows['order_default']['states']['fraudulent']['label'] = 'Fraudulent';
-  // $workflows['order_default']['transitions']['fraud']['label'] = '';
-  // $workflows['order_default']['transitions']['fraud']['from'] = ['draft'];
-  // $workflows['order_default']['transitions']['fraud']['to'] = 'fraudulent';
-  // dpm($workflows);
 }

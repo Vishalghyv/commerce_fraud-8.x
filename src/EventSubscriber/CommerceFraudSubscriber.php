@@ -2,7 +2,6 @@
 
 namespace Drupal\commerce_fraud\EventSubscriber;
 
-use Drupal\commerce_fraud\CommerceFraudRuleServiceInterface;
 use Drupal\state_machine\Event\WorkflowTransitionEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Drupal\commerce_order\Entity\OrderInterface;
@@ -26,13 +25,6 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
   protected $eventDispatcher;
 
   /**
-   * The fraud rule service.
-   *
-   * @var \Drupal\commerce_fraud\CommerceFraudRuleServiceInterface
-   */
-  protected $commerceFraudRuleService;
-
-  /**
    * The database connection.
    *
    * @var \Drupal\Core\Database\Connection
@@ -41,15 +33,11 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
 
   /**
    * Constructs a new FraudSubscriber object.
-   *
-   * @param \Drupal\commerce_fraud\CommerceFraudRuleServiceInterface $commerce_fraud_rule_service
-   *   The fraud generation service.
-   * @param $commerce_fraud_rule_service
+   * 
    * @param $connection
    */
-  public function __construct(EventDispatcherInterface $event_dispatcher, CommerceFraudRuleServiceInterface $commerce_fraud_rule_service, Connection $connection) {
+  public function __construct(EventDispatcherInterface $event_dispatcher, Connection $connection) {
     $this->eventDispatcher = $event_dispatcher;
-    $this->commerceFraudRuleService = $commerce_fraud_rule_service;
     $this->connection = $connection;
   }
 
@@ -81,41 +69,59 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
    */
   public function setFraudScore(WorkflowTransitionEvent $event) {
     /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
+    // Get Order.
     $order = $event->getEntity();
+
+    // Get Rules.
     $rules = \Drupal::entityTypeManager()->getStorage('rules');
 
+    // Load Rules.
     foreach ($rules->loadMultiple() as $rule) {
 
+      // Check if status of rule is true.
       if(!$rule->getStatus()) {
         continue;
       }
+
+      // Apply the rule.
+      // File contating apply function is plugin-fraud rule.
       $action = $rule->getRule()->apply($order);
 
+      // Check if the rule applied.
       if (!$action) {
         continue;
       }
-      $fraud_count = $rule->getCounter();
 
+      // Get the counter and name set in the entity.
+      $fraud_count = $rule->getCounter();
       $rule_name = $rule->getRule()->getPluginId();
+
+      // Add a log to order activity/
       $logStorage = \Drupal::entityTypeManager()->getStorage('commerce_log');
       $logStorage->generate($order, 'fraud_rule_name', ['rule_name' => $rule_name])->save();
 
+      // Detail for Fraud Event.
       $note = $rule_name . ": " . $fraud_count;
       $event = new FraudEvent($fraud_count, $order->id(), $note);
 
+      // Dispatch Fraud Event with inserting event.
       $this->eventDispatcher->dispatch(FraudEvents::FRAUD_COUNT_INSERT, $event);
     }
 
+    // Calculating complete fraud score for the order.
     $updated_fraud_score = $this->getFraudScore($order->id());
 
+    // Check if the order fraud score have value more than black list cap set in settings.
     if ($updated_fraud_score <= \Drupal::state()->get('commerce_fraud_blacklist_cap', 10)) {
       return;
     }
 
+    // Check if to set fraudulent status and cancel order since the order is already blacklisted checked above.
     if (\Drupal::state()->get('stop_order', FALSE)) {
       $this->cancelFraudStatus($order);
     }
 
+    // Sending the details of the blacklisted order via mail.
     $this->sendBlackListedOrderMail($order, $updated_fraud_score);
 
   }
@@ -128,6 +134,7 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
    * @return int
    */
   public function getFraudScore(int $order_id) {
+    // Query to get all fraud score for order id.
     $result = $this->connection->select('commerce_fraud_fraud_score', 'f')
       ->fields('f', ['fraud_score'])
       ->condition('order_id', $order_id)
@@ -136,6 +143,7 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
     foreach ($result as $row) {
       $score += $row->fraud_score;
     }
+
     return $score;
   }
 
@@ -143,10 +151,12 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
    * {@inheritdoc}
    */
   public function cancelFraudStatus(OrderInterface $order) {
-    // dpm($order->getState()->getPossibleValues());
+    // Cancelling the order and setting the status to fraudulent.
     $order->getState()->applyTransitionById('cancel');
     $order->getState()->setValue(['value' => 'fraudulent']);
     $logStorage = \Drupal::entityTypeManager()->getStorage('commerce_log');
+
+    // Creating of log for the order and refreshing it on load.
     $logStorage->generate($order, 'order_fraud')->save();
     $order->setRefreshState(OrderInterface::REFRESH_ON_LOAD);
   }
@@ -155,11 +165,14 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
    * {@inheritdoc}
    */
   public function sendBlackListedOrderMail(OrderInterface $order, int $fraud_score) {
+
     $mailManager = \Drupal::service('plugin.manager.mail');
 
+    // Mail details.
     $module = 'commerce_fraud';
     $key = 'send_blacklist';
     $to = \Drupal::state()->get('send_email', \Drupal::config('system.site')->get('mail'));
+    // Mail message.
     $params['message'] = $this->getMailMessage($order, $fraud_score);
     $params['order_id'] = $order->id();
     $langcode = \Drupal::languageManager()->getDefaultLanguage()->getId();
@@ -167,11 +180,12 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
 
     $result = $mailManager->mail($module, $key, $to, $langcode, $params, NULL, $send);
 
+    // Setting a message about the mail.
     if ($result['result']) {
-      drupal_set_message(t('Your message has been sent.'));
+      drupal_set_message(t('Message about the order has been sent.'));
       return;
     }
-    drupal_set_message(t('There was a problem sending your message and it was not sent.'), 'error');
+    drupal_set_message(t('There was a problem sending message and it was not sent.'), 'error');
   }
 
   /**

@@ -17,7 +17,7 @@ use Drupal\commerce_order\Entity\OrderInterface;
  *   description = @Translation("Checks Product Attribute"),
  * )
  */
-class ProductAttributeFraudRule extends FraudOfferBase {
+class ProductAttributeFraudRule extends FraudRuleBase {
 
   /**
    * The condition manager.

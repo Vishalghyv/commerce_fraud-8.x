@@ -14,7 +14,7 @@ use Drupal\commerce_order\Entity\OrderInterface;
  *   description = @Translation("Checks Order User IP address"),
  * )
  */
-class CheckUserIpFraudRule extends FraudOfferBase {
+class CheckUserIpFraudRule extends FraudRuleBase {
 
   /**
    * The ID of the item to delete.

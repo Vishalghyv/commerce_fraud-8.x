@@ -15,7 +15,7 @@ use Drupal\commerce_order\Entity\OrderInterface;
  *   description = @Translation("Checks Order Total Quantity"),
  * )
  */
-class TotalQuantityFraudRule extends FraudOfferBase {
+class TotalQuantityFraudRule extends FraudRuleBase {
 
   /**
    * {@inheritdoc}

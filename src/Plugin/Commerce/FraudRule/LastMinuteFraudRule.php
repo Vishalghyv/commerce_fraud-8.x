@@ -15,7 +15,7 @@ use Drupal\commerce_order\Entity\OrderInterface;
  *   description = @Translation("Checks Order Last Minute"),
  * )
  */
-class LastMinuteFraudRule extends FraudOfferBase {
+class LastMinuteFraudRule extends FraudRuleBase {
 
   /**
    * The ID of the item to delete.

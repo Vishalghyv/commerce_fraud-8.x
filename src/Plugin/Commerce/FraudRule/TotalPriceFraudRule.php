@@ -16,7 +16,7 @@ use Drupal\commerce_price\Price;
  *   description = @Translation("Checks Order Total Price"),
  * )
  */
-class TotalPriceFraudRule extends FraudOfferBase {
+class TotalPriceFraudRule extends FraudRuleBase {
 
   /**
    * {@inheritdoc}
