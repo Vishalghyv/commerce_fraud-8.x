@@ -85,8 +85,7 @@ class TotalQuantityFraudRule extends FraudRuleBase {
     }
 
     if ($quantity > $this->configuration['buy_quantity']) {
-      // Do something.
-      drupal_set_message('Quantity is greater than 10 increase the fraud count');
+
       return TRUE;
     }
     return FALSE;

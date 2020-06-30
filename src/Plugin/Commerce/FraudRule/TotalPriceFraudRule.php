@@ -86,8 +86,7 @@ class TotalPriceFraudRule extends FraudRuleBase {
     $new_price = new Price($price, $order_price->getCurrencyCode());
 
     if ($order_price->greaterThan($new_price)) {
-      // Do something.
-      drupal_set_message('Price is greater than 1000 INR - increase the fraud count');
+
       return TRUE;
     }
     return FALSE;

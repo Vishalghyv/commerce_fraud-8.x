@@ -112,8 +112,6 @@ class LastMinuteFraudRule extends FraudRuleBase {
       ->condition('placed', $this->timestampFromMinutes($this->configuration['last_minute']), '>=');
 
     if (!empty($query->execute()->fetchAssoc())) {
-      // Do something.
-      drupal_set_message('Last order was placed within 5 minutes - increase the fraud count');
       return TRUE;
     }
     return FALSE;
