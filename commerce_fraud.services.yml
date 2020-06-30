@@ -1,7 +1,7 @@
 services:
   commerce_fraud.commerce_fraud_subscriber:
     class: Drupal\commerce_fraud\EventSubscriber\CommerceFraudSubscriber
-    arguments: ['@event_dispatcher', '@commerce_fraud.commerce_fraud_generation_service', '@database']
+    arguments: ['@event_dispatcher', '@database']
     tags:
       - { name: event_subscriber }
   commerce_fraud.fraud_count_subscriber:
@@ -10,10 +10,10 @@ services:
     tags:
       - {name: event_subscriber}
 
-  commerce_fraud.commerce_fraud_generation_service:
-    class: Drupal\commerce_fraud\CommerceFraudGenerationService
-    arguments: ['@config.factory', '@plugin.manager.commerce_fraud_generator']
+  commerce_fraud.commerce_fraud_rule_service:
+    class: Drupal\commerce_fraud\CommerceFraudRuleService
+    arguments: ['@config.factory', '@plugin.manager.commerce_fraud_rule']
 
-  plugin.manager.commerce_fraud_generator:
+  plugin.manager.commerce_fraud_rule:
     class: Drupal\commerce_fraud\CommerceFraudManager
     parent: default_plugin_manager

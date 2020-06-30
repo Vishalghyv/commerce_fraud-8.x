@@ -8,9 +8,9 @@ use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Plugin\DefaultPluginManager;
 
 /**
- * Manages discovery and instantiation of order number generator plugins.
+ * Manages discovery and instantiation of fruad rule plugins.
  *
- * @see \Drupal\commerce_fraud\Annotation\CommerceFraudGenerator
+ * @see \Drupal\commerce_fraud\Annotation\CommerceFraudRule
  * @see plugin_api
  */
 class CommerceFraudManager extends DefaultPluginManager {
@@ -27,10 +27,10 @@ class CommerceFraudManager extends DefaultPluginManager {
    *   The module handler.
    */
   public function __construct(\Traversable $namespaces, CacheBackendInterface $cache_backend, ModuleHandlerInterface $module_handler) {
-    parent::__construct('Plugin/Commerce/FraudGenerator', $namespaces, $module_handler, 'Drupal\commerce_fraud\Plugin\Commerce\FraudGenerator\FraudGeneratorInterface', 'Drupal\commerce_fraud\Annotation\CommerceFraudGenerator');
+    parent::__construct('Plugin/Commerce/FraudRule', $namespaces, $module_handler, 'Drupal\commerce_fraud\Plugin\Commerce\FraudRule\FraudRuleInterface', 'Drupal\commerce_fraud\Annotation\CommerceFraudRule');
 
-    $this->alterInfo('commerce_fraud_generator_info');
-    $this->setCacheBackend($cache_backend, 'commerce_fraud_generator_plugins');
+    $this->alterInfo('commerce_fraud_rule_info');
+    $this->setCacheBackend($cache_backend, 'commerce_fraud_rule_plugins');
   }
 
   /**
@@ -41,7 +41,7 @@ class CommerceFraudManager extends DefaultPluginManager {
 
     foreach (['id', 'label'] as $required_property) {
       if (empty($definition[$required_property])) {
-        throw new PluginException(sprintf('The commerce fraud generator %s must define the %s property.', $plugin_id, $required_property));
+        throw new PluginException(sprintf('The commerce fraud rule %s must define the %s property.', $plugin_id, $required_property));
       }
     }
   }

@@ -6,7 +6,7 @@ use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityChangedInterface;
 use Drupal\Core\Entity\EntityPublishedInterface;
 use Drupal\user\EntityOwnerInterface;
-use Drupal\commerce_fraud\Plugin\Commerce\FraudGenerator\FraudGeneratorInterface;
+use Drupal\commerce_fraud\Plugin\Commerce\FraudRule\FraudRuleInterface;
 
 /**
  * Provides an interface for defining Rules entities.
@@ -60,7 +60,7 @@ interface RulesInterface extends ContentEntityInterface, EntityChangedInterface,
   /**
    * Gets the rule.
    *
-   * @return \Drupal\commerce_fraud\Plugin\Commerce\FraudGenerator\FraudGeneratorInterface
+   * @return \Drupal\commerce_fraud\Plugin\Commerce\FraudRule\FraudRuleInterface
    */
   public function getRule();
 
@@ -95,11 +95,11 @@ interface RulesInterface extends ContentEntityInterface, EntityChangedInterface,
   /**
    * Sets the rule.
    *
-   * @param \Drupal\commerce_fraud\Plugin\Commerce\FraudGenerator\FraudGeneratorInterface $rule
+   * @param \Drupal\commerce_fraud\Plugin\Commerce\FraudRule\FraudRuleInterface $rule
    *   The rule.
    *
    * @return $this
    */
-  public function setRule(FraudGeneratorInterface $rule);
+  public function setRule(FraudRuleInterface $rule);
 
 }

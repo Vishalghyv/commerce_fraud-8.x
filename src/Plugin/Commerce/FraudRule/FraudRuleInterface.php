@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\commerce_fraud\Plugin\Commerce\FraudGenerator;
+namespace Drupal\commerce_fraud\Plugin\Commerce\FraudRule;
 
 use Drupal\Component\Plugin\PluginInspectionInterface;
 use Drupal\commerce_order\Entity\OrderInterface;
@@ -10,7 +10,7 @@ use Drupal\Core\Plugin\PluginFormInterface;
 /**
  * Defines the interface for order number generators.
  */
-interface FraudGeneratorInterface extends ConfigurableInterface, PluginFormInterface, PluginInspectionInterface {
+interface FraudRuleInterface extends ConfigurableInterface, PluginFormInterface, PluginInspectionInterface {
 
   /**
    * Gets the order number generator label.
@@ -29,14 +29,6 @@ interface FraudGeneratorInterface extends ConfigurableInterface, PluginFormInter
   public function getDescription();
 
   /**
-   * Generates an order number value object, given the last known order number
-   * as parameter.
-   *
-   * @return int
-   */
-  public function generate();
-
-  /**
    * Gets the offer entity type ID.
    *
    * This is the entity type ID of the entity passed to apply().
@@ -49,10 +41,8 @@ interface FraudGeneratorInterface extends ConfigurableInterface, PluginFormInter
   /**
    * Applies the offer to the given entity.
    *
-   * @param \Drupal\Core\Entity\EntityInterface $entity
+   * @param \Drupal\Core\Entity\OrderInterface $entity
    *   The entity.
-   * @param \Drupal\commerce_promotion\Entity\PromotionInterface $promotion
-   *   THe parent promotion.
    */
   public function apply(OrderInterface $entity);
 

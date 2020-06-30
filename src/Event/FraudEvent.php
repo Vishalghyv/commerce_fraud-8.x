@@ -36,6 +36,8 @@ class FraudEvent extends Event {
    * FraudEvent constructor.
    *
    * @param $count
+   * @param $order_id
+   * @param $note
    */
   public function __construct($count, $order_id, $note) {
     $this->count = $count;

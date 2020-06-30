@@ -2,22 +2,17 @@
 
 namespace Drupal\commerce_fraud\Form;
 
-use Drupal\Core\Entity\ContentEntityConfirmFormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Form\FormBase;
-use Drupal\Core\Routing\CurrentRouteMatch;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Form\ConfirmFormBase;
-use Drupal\Core\Url;
 
 /**
- * Provides a confirmation form for unlocking orders.
+ * Provides a confirmation form for reseting orders.
  */
 class OrderResetForm extends ConfirmFormBase {
 
   /**
-   * The current order.
+   * The current order id.
    *
    * @var \Drupal\commerce_order\Entity\OrderInterface
    */
@@ -31,17 +26,24 @@ class OrderResetForm extends ConfirmFormBase {
   protected $order;
 
   /**
-   * The ID of the item to delete.
+   * Database.
    *
-   * @var string
+   * @var database
    */
   protected $database;
 
+  /**
+   * {@inheritdoc}
+   */
   public function __construct() {
     $this->order = \Drupal::routeMatch()->getParameter('commerce_order');
     $this->order_id = $this->order->id();
     $this->database = \Drupal::database();
   }
+
+  /**
+   * {@inheritdoc}
+   */
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('database')
@@ -55,54 +57,40 @@ class OrderResetForm extends ConfirmFormBase {
     return 'commerce_order_reset_form';
   }
 
-
   /**
    * {@inheritdoc}
    */
   public function getQuestion() {
-    return t('Do you want to delete %id?', array('%id' => $this->order_id));
+    return t('Do you want to delete %id?', ['%id' => $this->order_id]);
   }
 
   /**
    * {@inheritdoc}
    */
-    public function getCancelUrl() {
-      return $this->order->toUrl('collection');
+  public function getCancelUrl() {
+    return $this->order->toUrl('collection');
   }
 
   /**
    * {@inheritdoc}
    */
-    public function getDescription() {
+  public function getDescription() {
     return t('Do this to make the fraud score of the order to 0');
   }
 
   /**
    * {@inheritdoc}
    */
-    public function getConfirmText() {
+  public function getConfirmText() {
     return t('Reset Fraud Score');
   }
 
   /**
    * {@inheritdoc}
    */
-    public function getCancelText() {
+  public function getCancelText() {
     return t('Cancel');
   }
-
-  /**
-   * {@inheritdoc}
-   *
-   * @param int $id
-   *   (optional) The ID of the item to be deleted.
-   */
-  public function buildForm(array $form, FormStateInterface $form_state) {
-    return parent::buildForm($form, $form_state);
-  }
-
-
-
 
   /**
    * {@inheritdoc}
