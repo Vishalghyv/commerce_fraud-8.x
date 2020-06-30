@@ -33,7 +33,7 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
 
   /**
    * Constructs a new FraudSubscriber object.
-   * 
+   *
    * @param $connection
    */
   public function __construct(EventDispatcherInterface $event_dispatcher, Connection $connection) {
@@ -79,7 +79,7 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
     foreach ($rules->loadMultiple() as $rule) {
 
       // Check if status of rule is true.
-      if(!$rule->getStatus()) {
+      if (!$rule->getStatus()) {
         continue;
       }
 
@@ -96,7 +96,7 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
       $fraud_count = $rule->getCounter();
       $rule_name = $rule->getRule()->getPluginId();
 
-      // Add a log to order activity/
+      // Add a log to order activity/.
       $logStorage = \Drupal::entityTypeManager()->getStorage('commerce_log');
       $logStorage->generate($order, 'fraud_rule_name', ['rule_name' => $rule_name])->save();
 

@@ -66,6 +66,10 @@ class LastMinuteFraudRule extends FraudRuleBase {
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form += parent::buildConfigurationForm($form, $form_state);
+
+    $form['#type'] = 'fieldset';
+    $form['#title'] = $this->t('Rule');
+    $form['#collapsible'] = FALSE;
     // Remove the main fieldset.
     $form['#type'] = 'container';
 
@@ -109,7 +113,7 @@ class LastMinuteFraudRule extends FraudRuleBase {
 
     if (!empty($query->execute()->fetchAssoc())) {
       // Do something.
-      drupal_set_message('Last order was placed within 5 minutes increase the fraud count');
+      drupal_set_message('Last order was placed within 5 minutes - increase the fraud count');
       return TRUE;
     }
     return FALSE;

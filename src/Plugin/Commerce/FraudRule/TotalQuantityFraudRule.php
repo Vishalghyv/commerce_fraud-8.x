@@ -42,6 +42,9 @@ class TotalQuantityFraudRule extends FraudRuleBase {
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form += parent::buildConfigurationForm($form, $form_state);
+    $form['#type'] = 'fieldset';
+    $form['#title'] = $this->t('Rule');
+    $form['#collapsible'] = FALSE;
     // Remove the main fieldset.
     $form['#type'] = 'container';
 

@@ -69,6 +69,9 @@ class ProductAttributeFraudRule extends FraudRuleBase {
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form += parent::buildConfigurationForm($form, $form_state);
+    $form['#type'] = 'fieldset';
+    $form['#title'] = $this->t('Rule');
+    $form['#collapsible'] = FALSE;
     // Remove the main fieldset.
     $form['#type'] = 'container';
 
@@ -108,6 +111,7 @@ class ProductAttributeFraudRule extends FraudRuleBase {
     $order_items = $order->getItems();
 
     $product_conditions = $this->buildConditionGroup($this->configuration['product_conditions']);
+
     $applied = $this->evaluateConditions($order_items, $product_conditions);
 
     return $applied;
@@ -133,6 +137,9 @@ class ProductAttributeFraudRule extends FraudRuleBase {
     return new ConditionGroup($conditions, 'OR');
   }
 
+  /**
+   *
+   */
   protected function evaluateConditions(array $order_items, ConditionGroup $conditions) {
 
     foreach ($order_items as $index => $order_item) {

@@ -45,7 +45,7 @@ class PoBoxFraudRule extends FraudRuleBase {
 
     if ($this->containsPoBox($order_profile[0]['address_line1']) || $this->containsPoBox($order_profile[0]['address_line2'])) {
       // Do something.
-      drupal_set_message('Po Box is present in the order increase the fraud count');
+      drupal_set_message('Po Box is present in the order - increase the fraud count');
       return TRUE;
     }
     return FALSE;

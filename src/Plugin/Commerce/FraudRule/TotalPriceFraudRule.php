@@ -43,6 +43,9 @@ class TotalPriceFraudRule extends FraudRuleBase {
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form += parent::buildConfigurationForm($form, $form_state);
+    $form['#type'] = 'fieldset';
+    $form['#title'] = $this->t('Rule');
+    $form['#collapsible'] = FALSE;
     // Remove the main fieldset.
     $form['#type'] = 'container';
 
@@ -78,14 +81,13 @@ class TotalPriceFraudRule extends FraudRuleBase {
    */
   public function apply(OrderInterface $order) {
     $order_price = $order->getTotalPrice();
-    drupal_set_message("Currency code{$order_price->getCurrencyCode()}");
+
     $price = $this->configuration['buy_price'];
     $new_price = new Price($price, $order_price->getCurrencyCode());
 
-    drupal_set_message("nv{$new_price}");
     if ($order_price->greaterThan($new_price)) {
       // Do something.
-      drupal_set_message('Price is greater than 1000 INR increase the fraud count');
+      drupal_set_message('Price is greater than 1000 INR - increase the fraud count');
       return TRUE;
     }
     return FALSE;

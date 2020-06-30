@@ -77,7 +77,7 @@ class CheckUserIpFraudRule extends FraudRuleBase {
 
     if ($orders_count) {
       // Do something.
-      drupal_set_message('Order Customer have placed order form different Ip increase the fraud count');
+      drupal_set_message('Customer have placed order form different Ip - increase the fraud count');
       return TRUE;
     }
     return FALSE;

@@ -82,10 +82,6 @@ abstract class FraudRuleBase extends PluginBase implements FraudRuleInterface, C
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     // Wrap the offer configuration in a fieldset by default.
-    $form['#type'] = 'fieldset';
-    $form['#title'] = $this->t('Rule');
-    $form['#collapsible'] = FALSE;
-
     return $form;
   }
 
