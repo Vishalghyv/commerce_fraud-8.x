@@ -35,6 +35,8 @@ class ProductAttributeFraudRule extends FraudRuleBase {
    *   The pluginId for the plugin instance.
    * @param mixed $plugin_definition
    *   The plugin implementation definition.
+   * @param \Drupal\commerce\ConditionManagerInterface $condition_manager
+   *   The condition manager.
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition, ConditionManagerInterface $condition_manager) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
@@ -103,7 +105,7 @@ class ProductAttributeFraudRule extends FraudRuleBase {
   }
 
   /**
-   *
+   * {@inheritdoc}
    */
   public function apply(OrderInterface $order) {
     $order_items = $order->getItems();
@@ -136,7 +138,7 @@ class ProductAttributeFraudRule extends FraudRuleBase {
   }
 
   /**
-   * Evaluate conditions for each order item and return bool as per condition evaluation.
+   * Evaluate conditions for each order item and Returns bool as per condition evaluation.
    *
    * @param \Drupal\commerce_order\Entity\OrderItemInterface[] $order_items
    *   The order items.

@@ -29,13 +29,13 @@ class RulesListBuilder extends EntityListBuilder {
    */
   public function buildRow(EntityInterface $entity) {
     /* @var \Drupal\commerce_fraud\Entity\Rules $entity */
-    $row['label'] = $entity->label();
+    $row['label'] = $entity->id();
     $row['name'] = Link::createFromRoute(
       $entity->label(),
       'entity.rules.edit_form',
       ['rules' => $entity->id()]
     );
-    $row['rule_name'] = $entity->getPlugin()->getPluginId();
+    $row['rule_name'] = $entity->getPlugin()->getLabel();
     $row['counter'] = $entity->getCounter();
     return $row + parent::buildRow($entity);
   }

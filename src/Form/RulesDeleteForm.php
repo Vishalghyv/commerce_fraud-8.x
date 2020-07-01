@@ -39,9 +39,9 @@ class RulesDeleteForm extends EntityConfirmFormBase {
     $this->entity->delete();
 
     $this->messenger()->addMessage(
-      $this->t('content @type: deleted @label.', [
-        '@type' => $this->entity->bundle(),
-        '@label' => $this->entity->label(),
+      $this->t('Rules @type: deleted @label.', [
+        '@type' => $this->entity->getPlugin()->getPluginId(),
+        '@label' => $this->entity->getPlugin()->getLabel(),
       ])
     );
 

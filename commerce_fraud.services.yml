@@ -10,10 +10,6 @@ services:
     tags:
       - {name: event_subscriber}
 
-  commerce_fraud.commerce_fraud_rule_service:
-    class: Drupal\commerce_fraud\CommerceFraudRuleService
-    arguments: ['@config.factory', '@plugin.manager.commerce_fraud_rule']
-
   plugin.manager.commerce_fraud_rule:
     class: Drupal\commerce_fraud\CommerceFraudManager
     parent: default_plugin_manager

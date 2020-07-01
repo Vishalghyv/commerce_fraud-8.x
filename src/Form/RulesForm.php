@@ -9,6 +9,9 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\entity\Form\EntityDuplicateFormTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
+/**
+ * Builds Form for Rules Entity.
+ */
 class RulesForm extends EntityForm {
 
   use EntityDuplicateFormTrait;
@@ -116,6 +119,7 @@ class RulesForm extends EntityForm {
       '#type' => 'number',
       '#title' => $this->t('Counter'),
       '#default_value' => 5,
+      '#required' => TRUE,
     ];
     $form['status'] = [
       '#type' => 'radios',

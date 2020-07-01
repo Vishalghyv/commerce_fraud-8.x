@@ -47,7 +47,13 @@ class PoBoxFraudRule extends FraudRuleBase {
   }
 
   /**
-   * {@inheritdoc}
+   * Checks the string for PO Box.
+   *
+   * @param string $address
+   *   The address string.
+   *
+   * @return bool
+   *   Bool as per preg match.
    */
   public function containsPoBox(string $address) {
     return preg_match("/\s*((?:P(?:OST)?.?\s*(?:O(?:FF(?:ICE)?)?)?.?\s*(?:B(?:IN|OX)?)?)+|(?:B(?:IN|OX)+\s+)+)\s*\d+\s*(^|\s|$)/i", $address);

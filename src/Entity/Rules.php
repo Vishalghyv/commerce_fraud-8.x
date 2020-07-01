@@ -2,16 +2,8 @@
 
 namespace Drupal\commerce_fraud\Entity;
 
-use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\commerce\CommerceSinglePluginCollection;
-use Drupal\Core\Field\BaseFieldDefinition;
-use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Config\Entity\ConfigEntityBase;
-use Drupal\Core\Entity\EntityChangedTrait;
-use Drupal\Core\Entity\EntityPublishedTrait;
-use Drupal\Core\Entity\EntityTypeInterface;
-use Drupal\user\UserInterface;
-use Drupal\commerce_fraud\Plugin\Commerce\FraudRule\FraudRuleInterface;
 
 /**
  * Defines the Rules entity.
@@ -50,6 +42,7 @@ use Drupal\commerce_fraud\Plugin\Commerce\FraudRule\FraudRuleInterface;
  *     "status",
  *     "plugin",
  *     "configuration",
+ *     "counter",
  *   },
  *   links = {
  *     "canonical" = "/admin/commerce/rules/{rules}",

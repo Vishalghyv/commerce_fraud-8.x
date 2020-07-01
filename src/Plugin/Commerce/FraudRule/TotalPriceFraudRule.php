@@ -82,9 +82,12 @@ class TotalPriceFraudRule extends FraudRuleBase {
     $order_price = $order->getTotalPrice();
 
     $price = $this->configuration['buy_amount'];
+
+    // If buy amount not set.
     if (!$price) {
       return FALSE;
     }
+
     $new_price = new Price($price['number'], $price['currency_code']);
 
     return $order_price->greaterThan($new_price);

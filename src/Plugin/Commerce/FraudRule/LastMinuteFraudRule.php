@@ -109,18 +109,17 @@ class LastMinuteFraudRule extends FraudRuleBase {
       ->condition('state', ['completed'], 'IN')
       ->condition('placed', $this->timestampFromMinutes($this->configuration['last_minute']), '>=');
 
-    if (!empty($query->execute()->fetchAssoc())) {
-      return TRUE;
-    }
-    return FALSE;
+    return !empty($query->execute()->fetchAssoc());
   }
 
   /**
-   * Returns a timestamp matching x days before today.
+   * Returns a timestamp matching x minutes before current time.
    *
-   * @param $minutes
+   * @param int $minutes
+   *   Minute to get time before.
    *
    * @return int
+   *   Timestamp.
    */
   public function timestampFromMinutes($minutes) {
     $date = new \DateTimeImmutable();

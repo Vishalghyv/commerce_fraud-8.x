@@ -23,7 +23,7 @@ class FraudEvent extends Event {
    *
    * @var int
    */
-  protected $order_id;
+  protected $orderId;
 
   /**
    * Note.
@@ -35,13 +35,16 @@ class FraudEvent extends Event {
   /**
    * FraudEvent constructor.
    *
-   * @param $count
-   * @param $order_id
-   * @param $note
+   * @param int $count
+   *   Counter.
+   * @param int $orderId
+   *   Order ID.
+   * @param string $note
+   *   Note.
    */
-  public function __construct($count, $order_id, $note) {
+  public function __construct($count, $orderId, $note) {
     $this->count = $count;
-    $this->order_id = $order_id;
+    $this->orderId = $orderId;
     $this->note = $note;
   }
 
@@ -49,24 +52,27 @@ class FraudEvent extends Event {
    * Return count.
    *
    * @return string
+   *   Counter.
    */
   public function getCount() {
     return $this->count;
   }
 
   /**
-   * Return order_id.
+   * Return orderId.
    *
    * @return int
+   *   Order Id.
    */
   public function getOrderId() {
-    return $this->order_id;
+    return $this->orderId;
   }
 
   /**
    * Return note.
    *
    * @return int
+   *  Note.
    */
   public function getNote() {
     return $this->note;

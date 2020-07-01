@@ -75,10 +75,7 @@ class CheckUserIpFraudRule extends FraudRuleBase {
       ->execute()
       ->fetchField();
 
-    if ($orders_count) {
-      return TRUE;
-    }
-    return FALSE;
+    return (bool) $orders_count;
   }
 
 }

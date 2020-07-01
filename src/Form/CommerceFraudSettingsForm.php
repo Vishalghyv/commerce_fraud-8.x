@@ -29,7 +29,11 @@ class CommerceFraudSettingsForm extends ConfigFormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
 
-    $form['commerce_fraud_caps'] = ['#type' => 'fieldset', '#collapsible' => TRUE, '#title' => t('Commerce Fraud Caps Settings')];
+    $form['commerce_fraud_caps'] = [
+      '#type' => 'fieldset',
+      '#collapsible' => TRUE,
+      '#title' => t('Commerce Fraud Caps Settings'),
+    ];
 
     $form['commerce_fraud_caps']['commerce_fraud_checklist_cap'] = [
       '#title' => t('Checklist cap'),

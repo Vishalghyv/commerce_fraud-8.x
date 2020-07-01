@@ -19,13 +19,3 @@ commerce_fraud.rules.*:
     counter:
       type: integer
       label: 'Counter'
-
-commerce_fraud.rules.plugin.*:
-  type: commerce_rules_configuration
-
-commerce_rules_configuration:
-  type: mapping
-  mapping:
-    display_inclusive:
-      type: boolean
-      label: 'Displays Status of rule'

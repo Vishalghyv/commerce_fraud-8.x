@@ -42,7 +42,12 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
   /**
    * Constructs a new FraudSubscriber object.
    *
-   * @param $connection
+   * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $event_dispatcher
+   *   The event dispatcher.
+   * @param \Drupal\Core\Messenger\MessengerInterface $messenger
+   *   The messenger.
+   * @param \Drupal\Core\Database\Connection $connection
+   *   The database connection to be used.
    */
   public function __construct(EventDispatcherInterface $event_dispatcher, MessengerInterface $messenger, Connection $connection) {
     $this->eventDispatcher = $event_dispatcher;
@@ -87,14 +92,9 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
     // Load Rules.
     foreach ($rules->loadMultiple() as $rule) {
 
-      // Check if status of rule is true.
-      if (!$rule->getStatus()) {
-        continue;
-      }
-
       // Apply the rule.
       // File contating apply function is plugin-fraud rule.
-      $action = $rule->getRule()->apply($order);
+      $action = $rule->getPlugin()->apply($order);
 
       // Check if the rule applied.
       if (!$action) {
@@ -103,9 +103,9 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
 
       // Get the counter and name set in the entity.
       $fraud_count = $rule->getCounter();
-      $rule_name = $rule->getRule()->getPluginId();
+      $rule_name = $rule->getPLugin()->getLabel();
 
-      // Add a log to order activity/.
+      // Add a log to order activity.
       $logStorage = \Drupal::entityTypeManager()->getStorage('commerce_log');
       $logStorage->generate($order, 'fraud_rule_name', ['rule_name' => $rule_name])->save();
 
@@ -120,14 +120,14 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
     // Calculating complete fraud score for the order.
     $updated_fraud_score = $this->getFraudScore($order->id());
 
-    // Check if the order fraud score have value more than block list cap set in settings.
+    // Compare order fraud score with block list cap set in settings.
     if ($updated_fraud_score <= \Drupal::state()->get('commerce_fraud_blocklist_cap', 10)) {
       return;
     }
 
-    // Check if to set fraudulent status and cancel order since the order is already blocklisted checked above.
+    // Cancel order if set in settings.
     if (\Drupal::state()->get('stop_order', FALSE)) {
-      $this->cancelFraudStatus($order);
+      $this->cancelFraudulentOrder($order);
     }
 
     // Sending the details of the blocklisted order via mail.
@@ -136,11 +136,13 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
   }
 
   /**
-   * Returns the fraud score.
+   * Returns the fraud score as per order id.
    *
-   * @param order_id
+   * @param int $order_id
+   *   Order Id.
    *
    * @return int
+   *   Fraud Score.
    */
   public function getFraudScore(int $order_id) {
     // Query to get all fraud score for order id.
@@ -149,15 +151,16 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
     $query->addExpression('SUM(fraud_score)', 'fraud');
     $result = $query->execute()->fetchCol();
 
-    return $result[0];
+    return $result[0] ?? 0;
   }
 
   /**
    * Cancels the order and sets its status to fradulent.
    *
    * @param \Drupal\commerce_order\Entity\OrderInterface $order
+   *   Order.
    */
-  public function cancelFraudStatus(OrderInterface $order) {
+  public function cancelFraudulentOrder(OrderInterface $order) {
     // Cancelling the order and setting the status to fraudulent.
     $order->getState()->applyTransitionById('cancel');
     $order->getState()->setValue(['value' => 'fraudulent']);
@@ -172,7 +175,9 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
    * Sends email about blocklisted orders to the email choosen un settings.
    *
    * @param \Drupal\commerce_order\Entity\OrderInterface $order
+   *   Order.
    * @param int $fraud_score
+   *   Fraud Score.
    */
   public function sendBlockListedOrderMail(OrderInterface $order, int $fraud_score) {
 
@@ -202,7 +207,9 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
    * Return message with details about order.
    *
    * @param \Drupal\commerce_order\Entity\OrderInterface $order
+   *   Order.
    * @param int $fraud_score
+   *   Fraud Score.
    *
    * @return string[]
    *   Message.
