@@ -10,14 +10,27 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Url;
 
 /**
+ * Implements hook_help().
+ */
+function commerce_fraud_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the commerce_fraud module.
+    case 'help.page.commerce_fraud':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Detects potentially fraudulent orders') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
  * Implements hook_entity_operation().
  */
 function commerce_fraud_entity_operation_alter(array &$operations, EntityInterface $entity) {
-
-  $entityTypeId = $entity->getEntityTypeId();
-
-  // Make sure we are modifying only node entity.
-  if ($entityTypeId !== 'commerce_order') {
+  // Make sure we are modifying only order entity.
+  if ($entity->getEntityTypeId() !== 'commerce_order') {
     return;
   }
   $resetUrl = Url::fromRoute('entity.commerce_order.reset_page', ['commerce_order' => $entity->id()]);
@@ -30,22 +43,6 @@ function commerce_fraud_entity_operation_alter(array &$operations, EntityInterfa
 }
 
 /**
- * Implements hook_help().
- */
-function commerce_fraud_help($route_name, RouteMatchInterface $route_match) {
-  switch ($route_name) {
-    // Main module help for the commerce_fraud module.
-    case 'help.page.commerce_fraud':
-      $output = '';
-      $output .= '<h3>' . t('About') . '</h3>';
-      $output .= '<p>' . t('Detects potentially fraudulous orders') . '</p>';
-      return $output;
-
-    default:
-  }
-}
-
-/**
  * Implements hook_mail().
  */
 function commerce_fraud_mail($key, &$message, $params) {
@@ -54,16 +51,16 @@ function commerce_fraud_mail($key, &$message, $params) {
   ];
 
   switch ($key) {
-    case 'send_blacklist':
+    case 'send_blocklist':
       $message['from'] = \Drupal::config('system.site')->get('mail');
-      $message['subject'] = t('New Blacklisted order - order id: @order_id', ['@order_id' => $params['order_id']], $options);
+      $message['subject'] = t('New Blocklisted order - order id: @order_id', ['@order_id' => $params['order_id']], $options);
       $message['body'][] = $params['message'];
       break;
   }
 }
 
 /**
- * Change the label for the "Completed" state to "Captured", for the `order_default` workflow.
+ * Add the state "fraudulent" with label "Fraudulent" for the `order_default` workflow.
  *
  * @param array $workflows
  *   Workflow definitions, keyed by plugin ID.

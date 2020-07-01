@@ -34,7 +34,7 @@ class TotalPriceFraudRule extends FraudRuleBase {
    */
   public function defaultConfiguration() {
     return [
-      'buy_price' => 100,
+      'buy_amount' => NULL,
     ] + parent::defaultConfiguration();
   }
 
@@ -43,22 +43,20 @@ class TotalPriceFraudRule extends FraudRuleBase {
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form += parent::buildConfigurationForm($form, $form_state);
-    $form['#type'] = 'fieldset';
+    $form['#type'] = 'container';
     $form['#title'] = $this->t('Rule');
     $form['#collapsible'] = FALSE;
-    // Remove the main fieldset.
-    $form['#type'] = 'container';
 
     $form['buy'] = [
       '#type' => 'fieldset',
       '#title' => $this->t('Price limit'),
-      '#description' => 'This value will be checked according to currency code of the order',
       '#collapsible' => FALSE,
     ];
-    $form['buy']['price'] = [
-      '#type' => 'number',
+    $form['buy']['amount'] = [
+      '#type' => 'commerce_price',
       '#title' => $this->t('Price'),
-      '#default_value' => $this->configuration['buy_price'],
+      '#default_value' => $this->configuration['buy_amount'],
+      '#required' => TRUE,
     ];
 
     return $form;
@@ -72,7 +70,8 @@ class TotalPriceFraudRule extends FraudRuleBase {
 
     if (!$form_state->getErrors()) {
       $values = $form_state->getValue($form['#parents']);
-      $this->configuration['buy_price'] = $values['buy']['price'];
+
+      $this->configuration['buy_amount'] = $values['buy']['amount'];
     }
   }
 
@@ -82,15 +81,16 @@ class TotalPriceFraudRule extends FraudRuleBase {
   public function apply(OrderInterface $order) {
     $order_price = $order->getTotalPrice();
 
-    $price = $this->configuration['buy_price'];
-    $new_price = new Price($price, $order_price->getCurrencyCode());
+    $price = $this->configuration['buy_amount'];
 
-    if ($order_price->greaterThan($new_price)) {
-      // Do something.
-      drupal_set_message('Price is greater than 1000 INR - increase the fraud count');
-      return TRUE;
+    // If buy amount not set.
+    if (!$price) {
+      return FALSE;
     }
-    return FALSE;
+
+    $new_price = new Price($price['number'], $price['currency_code']);
+
+    return $order_price->greaterThan($new_price);
   }
 
 }

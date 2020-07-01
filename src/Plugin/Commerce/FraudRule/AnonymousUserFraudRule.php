@@ -31,8 +31,6 @@ class AnonymousUserFraudRule extends FraudRuleBase {
     $customer = $order->getCustomer();
 
     if ($customer->isAnonymous()) {
-      // Do something.
-      drupal_set_message('Customer for the order is either deleted or anonymous increase the fraud count');
       return TRUE;
     }
     return FALSE;

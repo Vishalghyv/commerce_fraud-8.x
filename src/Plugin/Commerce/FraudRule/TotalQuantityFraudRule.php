@@ -42,11 +42,9 @@ class TotalQuantityFraudRule extends FraudRuleBase {
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form += parent::buildConfigurationForm($form, $form_state);
-    $form['#type'] = 'fieldset';
+    $form['#type'] = 'container';
     $form['#title'] = $this->t('Rule');
     $form['#collapsible'] = FALSE;
-    // Remove the main fieldset.
-    $form['#type'] = 'container';
 
     $form['buy'] = [
       '#type' => 'fieldset',
@@ -85,8 +83,7 @@ class TotalQuantityFraudRule extends FraudRuleBase {
     }
 
     if ($quantity > $this->configuration['buy_quantity']) {
-      // Do something.
-      drupal_set_message('Quantity is greater than 10 increase the fraud count');
+
       return TRUE;
     }
     return FALSE;

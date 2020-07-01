@@ -43,16 +43,17 @@ class PoBoxFraudRule extends FraudRuleBase {
 
     $order_profile = $order->billing_profile->entity->address->getValue();
 
-    if ($this->containsPoBox($order_profile[0]['address_line1']) || $this->containsPoBox($order_profile[0]['address_line2'])) {
-      // Do something.
-      drupal_set_message('Po Box is present in the order - increase the fraud count');
-      return TRUE;
-    }
-    return FALSE;
+    return $this->containsPoBox($order_profile[0]['address_line1']) || $this->containsPoBox($order_profile[0]['address_line2']);
   }
 
   /**
-   * {@inheritdoc}
+   * Checks the string for PO Box.
+   *
+   * @param string $address
+   *   The address string.
+   *
+   * @return bool
+   *   Bool as per preg match.
    */
   public function containsPoBox(string $address) {
     return preg_match("/\s*((?:P(?:OST)?.?\s*(?:O(?:FF(?:ICE)?)?)?.?\s*(?:B(?:IN|OX)?)?)+|(?:B(?:IN|OX)+\s+)+)\s*\d+\s*(^|\s|$)/i", $address);

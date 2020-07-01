@@ -6,7 +6,7 @@ use Drupal\commerce\Plugin\Commerce\Condition\ConditionInterface;
 use Drupal\Core\Form\FormStateInterface;
 
 /**
- * Provides the base class for order item offers.
+ * Provides the base class for fraud item rules.
  */
 abstract class FraudConditionBase extends FraudRuleBase implements FraudConditionInterface {
 
@@ -15,7 +15,6 @@ abstract class FraudConditionBase extends FraudRuleBase implements FraudConditio
    */
   public function defaultConfiguration() {
     return [
-      'display_inclusive' => TRUE,
       'conditions' => [],
     ] + parent::defaultConfiguration();
   }
@@ -46,7 +45,6 @@ abstract class FraudConditionBase extends FraudRuleBase implements FraudConditio
     if (!$form_state->getErrors()) {
       $values = $form_state->getValue($form['#parents']);
       $this->configuration = [];
-      $this->configuration['display_inclusive'] = !empty($values['display_inclusive']);
       $this->configuration['conditions'] = $values['conditions'];
     }
   }

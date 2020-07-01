@@ -2,13 +2,6 @@
 
 namespace Drupal\Tests\commerce_fruad\Kernel\Plugin\Commerce\FraudRule;
 
-use Drupal\commerce_order\Entity\Order;
-use Drupal\commerce_price\Calculator;
-use Drupal\commerce_price\Price;
-use Drupal\commerce_product\Entity\Product;
-use Drupal\commerce_product\Entity\ProductType;
-use Drupal\commerce_product\Entity\ProductVariation;
-use Drupal\commerce_fraud\Entity\Rule;
 use Drupal\Tests\commerce_order\Kernel\OrderKernelTestBase;
 
 /**
@@ -59,15 +52,13 @@ class AnonymousUserFraudRuleTest extends OrderKernelTestBase {
     // $this->installEntitySchema('rules');
     // // $this->installConfig(['commerce_fraud']);
     // $this->installSchema('commerce_fraud_fraud_score', ['rules']);
-
     // $product_type = ProductType::create([
     //   'id' => 'test',
     //   'label' => 'Test',
     //   'variationType' => 'default',
     // ]);
     // $product_type->save();
-
-    // for ($i = 0; $i < 4; $i++) {
+    // For ($i = 0; $i < 4; $i++) {
     //   $this->variations[$i] = ProductVariation::create([
     //     'type' => 'default',
     //     'sku' => $this->randomMachineName(),
@@ -78,7 +69,6 @@ class AnonymousUserFraudRuleTest extends OrderKernelTestBase {
     //   ]);
     //   $this->variations[$i]->save();
     // }
-
     // $first_product = Product::create([
     //   'type' => 'test',
     //   'title' => $this->randomMachineName(),
@@ -107,7 +97,6 @@ class AnonymousUserFraudRuleTest extends OrderKernelTestBase {
     //   'variations' => [$this->variations[3]],
     // ]);
     // $fourth_product->save();
-
     // $this->order = Order::create([
     //   'type' => 'default',
     //   'state' => 'completed',
@@ -118,7 +107,6 @@ class AnonymousUserFraudRuleTest extends OrderKernelTestBase {
     //   'store_id' => $this->store,
     //   'order_items' => [],
     // ]);
-
     // // Buy 6 "test" products, get 4 hats.
     // $this->promotion = Promotion::create([
     //   'name' => 'Promotion 1',
@@ -177,20 +165,18 @@ class AnonymousUserFraudRuleTest extends OrderKernelTestBase {
     // $second_order_item->save();
     // $this->order->setItems([$first_order_item, $second_order_item]);
     // $this->order->save();
-
     // // Insufficient purchase quantity.
     // // Only the first order item is counted (due to the product type condition),
     // // and its quantity is too small (2 < 6).
     // $this->promotion->apply($this->order);
     // $this->assertEmpty($this->order->collectAdjustments());
-
     // // Sufficient purchase quantity, but no offer order item found.
     // $first_order_item->setQuantity(6);
     // $first_order_item->save();
     // $this->order->save();
     // $this->promotion->apply($this->order);
     // this->assertEmpty($this->order->collectAdjustments());
-    $this->assertEmpty(5,5);
+    $this->assertEmpty(5, 5);
   }
 
 }

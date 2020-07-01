@@ -3,10 +3,10 @@
 namespace Drupal\commerce_fraud\Plugin\Commerce\FraudRule;
 
 /**
- * Defines the interface for order item offers.
+ * Defines the interface for fraud item rule.
  *
- * Order item offers have conditions, which are used to determine which
- * order items should be passed to the offer.
+ * Fraud Rule have conditions, which are used to determine which
+ * order should be passed by the rule.
  */
 interface FraudConditionInterface extends FraudRuleInterface {
 

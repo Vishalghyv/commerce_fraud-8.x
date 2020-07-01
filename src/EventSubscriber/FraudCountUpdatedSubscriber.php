@@ -8,7 +8,7 @@ use Drupal\Core\Database\Connection;
 
 /**
  * Event subscriber, that acts on the place transition of commerce order
- * entities, in order to generate and set an order number.
+ * entities, in order to generate and set an fraud score.
  */
 class FraudCountUpdatedSubscriber implements EventSubscriberInterface {
 
@@ -22,7 +22,8 @@ class FraudCountUpdatedSubscriber implements EventSubscriberInterface {
   /**
    * Constructs a new FraudCountSubscriber object.
    *
-   * @param $connection
+   * @param \Drupal\Core\Database\Connection $connection
+   *   The database connection to be used.
    */
   public function __construct(Connection $connection) {
     $this->connection = $connection;
@@ -52,7 +53,6 @@ class FraudCountUpdatedSubscriber implements EventSubscriberInterface {
    * {@inheritdoc}
    */
   public function addFraudCount(FraudEvent $event) {
-    drupal_set_message("This is coming from event {$event->getCount()}");
 
     $fields = [
       'fraud_score' => $event->getCount(),

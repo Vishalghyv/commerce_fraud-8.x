@@ -8,28 +8,28 @@ use Drupal\Component\Plugin\ConfigurableInterface;
 use Drupal\Core\Plugin\PluginFormInterface;
 
 /**
- * Defines the interface for order number generators.
+ * Defines the interface for fraud rules.
  */
 interface FraudRuleInterface extends ConfigurableInterface, PluginFormInterface, PluginInspectionInterface {
 
   /**
-   * Gets the order number generator label.
+   * Gets the fraud rule label.
    *
    * @return string
-   *   The order number generator label.
+   *   The fraud rule label.
    */
   public function getLabel();
 
   /**
-   * Gets the order number generator description.
+   * Gets the fraud rule description.
    *
    * @return string
-   *   The order number generator description.
+   *   The fraud rule description.
    */
   public function getDescription();
 
   /**
-   * Gets the offer entity type ID.
+   * Gets the rule entity type ID.
    *
    * This is the entity type ID of the entity passed to apply().
    *
@@ -39,7 +39,7 @@ interface FraudRuleInterface extends ConfigurableInterface, PluginFormInterface,
   public function getEntityTypeId();
 
   /**
-   * Applies the offer to the given entity.
+   * Applies the rule to the given entity.
    *
    * @param \Drupal\Core\Entity\OrderInterface $entity
    *   The entity.

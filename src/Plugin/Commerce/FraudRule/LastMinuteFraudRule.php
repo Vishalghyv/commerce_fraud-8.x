@@ -67,12 +67,10 @@ class LastMinuteFraudRule extends FraudRuleBase {
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form += parent::buildConfigurationForm($form, $form_state);
 
-    $form['#type'] = 'fieldset';
+    $form['#type'] = 'container';
     $form['#title'] = $this->t('Rule');
     $form['#collapsible'] = FALSE;
     // Remove the main fieldset.
-    $form['#type'] = 'container';
-
     $form['time'] = [
       '#type' => 'fieldset',
       '#title' => $this->t('Time limit'),
@@ -111,25 +109,21 @@ class LastMinuteFraudRule extends FraudRuleBase {
       ->condition('state', ['completed'], 'IN')
       ->condition('placed', $this->timestampFromMinutes($this->configuration['last_minute']), '>=');
 
-    if (!empty($query->execute()->fetchAssoc())) {
-      // Do something.
-      drupal_set_message('Last order was placed within 5 minutes - increase the fraud count');
-      return TRUE;
-    }
-    return FALSE;
+    return !empty($query->execute()->fetchAssoc());
   }
 
   /**
-   * Returns a timestamp matching x days before today.
+   * Returns a timestamp matching x minutes before current time.
    *
-   * @param $minutes
+   * @param int $minutes
+   *   Minute to get time before.
    *
    * @return int
+   *   Timestamp.
    */
   public function timestampFromMinutes($minutes) {
     $date = new \DateTimeImmutable();
     $date = $date->modify('- ' . $minutes . ' minutes');
-    dpm($date->getTimestamp());
     return $date->getTimestamp();
   }
 

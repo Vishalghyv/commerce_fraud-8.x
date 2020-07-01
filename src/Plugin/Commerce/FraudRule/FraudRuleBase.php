@@ -10,7 +10,7 @@ use Drupal\Core\Plugin\PluginBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Abstract base class for order number generators.
+ * Abstract base class for fraud rules.
  */
 abstract class FraudRuleBase extends PluginBase implements FraudRuleInterface, ContainerFactoryPluginInterface {
 
@@ -29,7 +29,7 @@ abstract class FraudRuleBase extends PluginBase implements FraudRuleInterface, C
   }
 
   /**
-   * Constructs a new FraudGeneratorBase object.
+   * Constructs a new FraudRuleBase object.
    *
    * @param array $configuration
    *   A configuration array containing information about the plugin instance.
@@ -114,9 +114,9 @@ abstract class FraudRuleBase extends PluginBase implements FraudRuleInterface, C
    */
   protected function assertEntity(EntityInterface $entity) {
     $entity_type_id = $entity->getEntityTypeId();
-    $offer_entity_type_id = $this->getEntityTypeId();
-    if ($entity_type_id != $offer_entity_type_id) {
-      throw new \InvalidArgumentException(sprintf('The offer requires a "%s" entity, but a "%s" entity was given.', $offer_entity_type_id, $entity_type_id));
+    $rule_entity_type_id = $this->getEntityTypeId();
+    if ($entity_type_id != $rule_entity_type_id) {
+      throw new \InvalidArgumentException(sprintf('The offer requires a "%s" entity, but a "%s" entity was given.', $rule_entity_type_id, $entity_type_id));
     }
   }
 

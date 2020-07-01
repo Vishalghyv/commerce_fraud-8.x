@@ -65,7 +65,7 @@ class CheckUserIpFraudRule extends FraudRuleBase {
    */
   public function apply(OrderInterface $order) {
     $customer_ip = $order->getIpAddress();
-    // dpm($customer_id);
+
     $orders_count = db_select('commerce_order', 'o')
       ->fields('o', ['hostname'])
       ->condition('uid', $order->getCustomerId(), '=')
@@ -75,12 +75,7 @@ class CheckUserIpFraudRule extends FraudRuleBase {
       ->execute()
       ->fetchField();
 
-    if ($orders_count) {
-      // Do something.
-      drupal_set_message('Customer have placed order form different Ip - increase the fraud count');
-      return TRUE;
-    }
-    return FALSE;
+    return (bool) $orders_count;
   }
 
 }

@@ -12,13 +12,6 @@ use Drupal\Core\Form\ConfirmFormBase;
 class OrderResetForm extends ConfirmFormBase {
 
   /**
-   * The current order id.
-   *
-   * @var \Drupal\commerce_order\Entity\OrderInterface
-   */
-  protected $order_id;
-
-  /**
    * The current order.
    *
    * @var \Drupal\commerce_order\Entity\OrderInterface
@@ -37,7 +30,6 @@ class OrderResetForm extends ConfirmFormBase {
    */
   public function __construct() {
     $this->order = \Drupal::routeMatch()->getParameter('commerce_order');
-    $this->order_id = $this->order->id();
     $this->database = \Drupal::database();
   }
 
@@ -61,7 +53,7 @@ class OrderResetForm extends ConfirmFormBase {
    * {@inheritdoc}
    */
   public function getQuestion() {
-    return t('Do you want to delete %id?', ['%id' => $this->order_id]);
+    return t('Do you want to reset order fraud score order -id: %id?', ['%id' => $this->order->id()]);
   }
 
   /**
@@ -75,7 +67,7 @@ class OrderResetForm extends ConfirmFormBase {
    * {@inheritdoc}
    */
   public function getDescription() {
-    return t('Do this to make the fraud score of the order to 0');
+    return t("Reset this order's fraud score to 0");
   }
 
   /**
@@ -97,7 +89,7 @@ class OrderResetForm extends ConfirmFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $this->database->delete('commerce_fraud_fraud_score')
-      ->condition('order_id', $this->order_id)
+      ->condition('order_id', $this->order->id())
       ->execute();
 
     $this->messenger()->addMessage($this->t('The order has been reseted.'));
