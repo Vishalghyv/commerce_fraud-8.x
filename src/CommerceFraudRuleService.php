@@ -41,7 +41,6 @@ class CommerceFraudRuleService implements CommerceFraudRuleServiceInterface {
    * {@inheritdoc}
    */
   public function setFraudCount(OrderInterface $order, string $rule) {
-    drupal_set_message("This is coming from CommerceFraudRuleService {$rule}");
 
     $rule = $this->commerceFraudManager->createInstance($rule);
     $action = $rule->apply($order);

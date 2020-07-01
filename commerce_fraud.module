@@ -38,7 +38,7 @@ function commerce_fraud_help($route_name, RouteMatchInterface $route_match) {
     case 'help.page.commerce_fraud':
       $output = '';
       $output .= '<h3>' . t('About') . '</h3>';
-      $output .= '<p>' . t('Detects potentially fraudulous orders') . '</p>';
+      $output .= '<p>' . t('Detects potentially fraudulent orders') . '</p>';
       return $output;
 
     default:
@@ -54,16 +54,16 @@ function commerce_fraud_mail($key, &$message, $params) {
   ];
 
   switch ($key) {
-    case 'send_blacklist':
+    case 'send_blocklist':
       $message['from'] = \Drupal::config('system.site')->get('mail');
-      $message['subject'] = t('New Blacklisted order - order id: @order_id', ['@order_id' => $params['order_id']], $options);
+      $message['subject'] = t('New Blocklisted order - order id: @order_id', ['@order_id' => $params['order_id']], $options);
       $message['body'][] = $params['message'];
       break;
   }
 }
 
 /**
- * Change the label for the "Completed" state to "Captured", for the `order_default` workflow.
+ * Add the state "fraudulent" with label "Fraudulent" for the `order_default` workflow.
  *
  * @param array $workflows
  *   Workflow definitions, keyed by plugin ID.

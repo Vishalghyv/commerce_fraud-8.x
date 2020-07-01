@@ -67,11 +67,10 @@ class LastMinuteFraudRule extends FraudRuleBase {
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form += parent::buildConfigurationForm($form, $form_state);
 
-    $form['#type'] = 'fieldset';
+    $form['#type'] = 'container';
     $form['#title'] = $this->t('Rule');
     $form['#collapsible'] = FALSE;
     // Remove the main fieldset.
-    $form['#type'] = 'container';
 
     $form['time'] = [
       '#type' => 'fieldset',
@@ -127,7 +126,6 @@ class LastMinuteFraudRule extends FraudRuleBase {
   public function timestampFromMinutes($minutes) {
     $date = new \DateTimeImmutable();
     $date = $date->modify('- ' . $minutes . ' minutes');
-    dpm($date->getTimestamp());
     return $date->getTimestamp();
   }
 

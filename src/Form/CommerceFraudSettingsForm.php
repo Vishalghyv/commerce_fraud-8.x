@@ -31,19 +31,19 @@ class CommerceFraudSettingsForm extends ConfigFormBase {
 
     $form['commerce_fraud_caps'] = ['#type' => 'fieldset', '#collapsible' => TRUE, '#title' => t('Commerce Fraud Caps Settings')];
 
-    $form['commerce_fraud_caps']['commerce_fraud_greylist_cap'] = [
-      '#title' => t('Greylist cap'),
-      '#description' => t('If an order has a fraud score greater than the number specified, it will be considered greylisted.'),
-      '#default_value' => \Drupal::state()->get('commerce_fraud_greylist_cap', 10),
+    $form['commerce_fraud_caps']['commerce_fraud_checklist_cap'] = [
+      '#title' => t('Checklist cap'),
+      '#description' => t('If an order has a fraud score greater than the number specified, it will be considered checklisted.'),
+      '#default_value' => \Drupal::state()->get('commerce_fraud_checklist_cap', 10),
       '#type' => 'number',
       '#min' => 0,
       '#step' => 1,
     ];
 
-    $form['commerce_fraud_caps']['commerce_fraud_blacklist_cap'] = [
-      '#title' => t('Blacklist cap'),
-      '#description' => t('If an order has a fraud score greater than the number specified, it will be considered blacklisted.'),
-      '#default_value' => \Drupal::state()->get('commerce_fraud_blacklist_cap', 20),
+    $form['commerce_fraud_caps']['commerce_fraud_blocklist_cap'] = [
+      '#title' => t('Blocklist cap'),
+      '#description' => t('If an order has a fraud score greater than the number specified, it will be considered blocklisted.'),
+      '#default_value' => \Drupal::state()->get('commerce_fraud_blocklist_cap', 20),
       '#type' => 'number',
       '#min' => 0,
       '#step' => 1,
@@ -52,7 +52,7 @@ class CommerceFraudSettingsForm extends ConfigFormBase {
     $form['stop_order'] = [
       '#type' => 'checkbox',
       '#title' => $this
-        ->t('Activate this to stop the blacklisted orders from completeing checkout'),
+        ->t('Activate this to stop the blocklisted orders from completeing checkout'),
       '#default_value' => \Drupal::state()->get('stop_order', FALSE),
     ];
 
@@ -61,7 +61,7 @@ class CommerceFraudSettingsForm extends ConfigFormBase {
       '#title' => $this->t('Email'),
       '#default_value' => \Drupal::state()->get('send_email', \Drupal::config('system.site')->get('mail')),
       '#required' => TRUE,
-      '#description' => t('If an order is listed as blacklist its detail will be send to this email'),
+      '#description' => t('If an order is blocklisted its details will be sent to this email'),
     ];
 
     return parent::buildForm($form, $form_state);
@@ -71,10 +71,10 @@ class CommerceFraudSettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
-    $greyListValue = $form_state->getValue('commerce_fraud_greylist_cap');
-    $blackListValue = $form_state->getValue('commerce_fraud_blacklist_cap');
-    if ($greyListValue >= $blackListValue) {
-      $form_state->setErrorByName('commerce_fraud_caps][commerce_fraud_greylist_cap', t('Grey List value cannot be equal to or more than Black List value'));
+    $checkListValue = $form_state->getValue('commerce_fraud_checklist_cap');
+    $blockListValue = $form_state->getValue('commerce_fraud_blocklist_cap');
+    if ($checkListValue >= $blockListValue) {
+      $form_state->setErrorByName('commerce_fraud_caps][commerce_fraud_checklist_cap', t('Check List value cannot be equal to or more than Block List value'));
     }
   }
 
@@ -83,8 +83,8 @@ class CommerceFraudSettingsForm extends ConfigFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     // Set the submitted configuration setting.
-    \Drupal::state()->set('commerce_fraud_blacklist_cap', $form_state->getValue('commerce_fraud_blacklist_cap'));
-    \Drupal::state()->set('commerce_fraud_greylist_cap', $form_state->getValue('commerce_fraud_greylist_cap'));
+    \Drupal::state()->set('commerce_fraud_blocklist_cap', $form_state->getValue('commerce_fraud_blocklist_cap'));
+    \Drupal::state()->set('commerce_fraud_checklist_cap', $form_state->getValue('commerce_fraud_checklist_cap'));
     \Drupal::state()->set('stop_order', $form_state->getValue('stop_order'));
     \Drupal::state()->set('send_email', $form_state->getValue('send_email'));
     parent::submitForm($form, $form_state);

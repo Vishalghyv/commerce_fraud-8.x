@@ -52,7 +52,6 @@ class FraudCountUpdatedSubscriber implements EventSubscriberInterface {
    * {@inheritdoc}
    */
   public function addFraudCount(FraudEvent $event) {
-    drupal_set_message("This is coming from event {$event->getCount()}");
 
     $fields = [
       'fraud_score' => $event->getCount(),

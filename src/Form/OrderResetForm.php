@@ -61,7 +61,7 @@ class OrderResetForm extends ConfirmFormBase {
    * {@inheritdoc}
    */
   public function getQuestion() {
-    return t('Do you want to delete %id?', ['%id' => $this->order_id]);
+    return t('Do you want to reset order fraud score order -id: %id?', ['%id' => $this->order_id]);
   }
 
   /**
@@ -75,7 +75,7 @@ class OrderResetForm extends ConfirmFormBase {
    * {@inheritdoc}
    */
   public function getDescription() {
-    return t('Do this to make the fraud score of the order to 0');
+    return t("Reset this order's fraud score to 0");
   }
 
   /**

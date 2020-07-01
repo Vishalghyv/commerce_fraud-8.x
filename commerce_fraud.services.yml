@@ -1,7 +1,7 @@
 services:
   commerce_fraud.commerce_fraud_subscriber:
     class: Drupal\commerce_fraud\EventSubscriber\CommerceFraudSubscriber
-    arguments: ['@event_dispatcher', '@database']
+    arguments: ['@event_dispatcher', '@messenger', '@database']
     tags:
       - { name: event_subscriber }
   commerce_fraud.fraud_count_subscriber:

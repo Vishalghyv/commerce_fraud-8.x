@@ -69,11 +69,9 @@ class ProductAttributeFraudRule extends FraudRuleBase {
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form += parent::buildConfigurationForm($form, $form_state);
-    $form['#type'] = 'fieldset';
+    $form['#type'] = 'container';
     $form['#title'] = $this->t('Rule');
     $form['#collapsible'] = FALSE;
-    // Remove the main fieldset.
-    $form['#type'] = 'container';
 
     $form['product'] = [
       '#type' => 'fieldset',
@@ -138,7 +136,15 @@ class ProductAttributeFraudRule extends FraudRuleBase {
   }
 
   /**
+   * Evaluate conditions for each order item and return bool as per condition evaluation.
    *
+   * @param \Drupal\commerce_order\Entity\OrderItemInterface[] $order_items
+   *   The order items.
+   * @param \Drupal\commerce\ConditionGroup $conditions
+   *   The conditions.
+   *
+   * @return bool
+   *   Conditions apply condition.
    */
   protected function evaluateConditions(array $order_items, ConditionGroup $conditions) {
 

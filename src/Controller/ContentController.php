@@ -14,7 +14,7 @@ class ContentController extends ControllerBase {
    * {@inheritdoc}
    */
   public function content() {
-    return ['#type' => 'markup', '#markup' => t('Detects potentially fraudulous orders')];
+    return ['#type' => 'markup', '#markup' => t('Detects potentially fraudulent orders')];
   }
 
 }

@@ -3,6 +3,7 @@
 namespace Drupal\commerce_fraud\EventSubscriber;
 
 use Drupal\state_machine\Event\WorkflowTransitionEvent;
+use Drupal\Core\Messenger\MessengerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Drupal\commerce_order\Entity\OrderInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -32,13 +33,21 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
   protected $connection;
 
   /**
+   * The messenger.
+   *
+   * @var \Drupal\Core\Messenger\MessengerInterface
+   */
+  protected $messenger;
+
+  /**
    * Constructs a new FraudSubscriber object.
    *
    * @param $connection
    */
-  public function __construct(EventDispatcherInterface $event_dispatcher, Connection $connection) {
+  public function __construct(EventDispatcherInterface $event_dispatcher, MessengerInterface $messenger, Connection $connection) {
     $this->eventDispatcher = $event_dispatcher;
     $this->connection = $connection;
+    $this->messenger = $messenger;
   }
 
   /**
@@ -111,18 +120,18 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
     // Calculating complete fraud score for the order.
     $updated_fraud_score = $this->getFraudScore($order->id());
 
-    // Check if the order fraud score have value more than black list cap set in settings.
-    if ($updated_fraud_score <= \Drupal::state()->get('commerce_fraud_blacklist_cap', 10)) {
+    // Check if the order fraud score have value more than block list cap set in settings.
+    if ($updated_fraud_score <= \Drupal::state()->get('commerce_fraud_blocklist_cap', 10)) {
       return;
     }
 
-    // Check if to set fraudulent status and cancel order since the order is already blacklisted checked above.
+    // Check if to set fraudulent status and cancel order since the order is already blocklisted checked above.
     if (\Drupal::state()->get('stop_order', FALSE)) {
       $this->cancelFraudStatus($order);
     }
 
-    // Sending the details of the blacklisted order via mail.
-    $this->sendBlackListedOrderMail($order, $updated_fraud_score);
+    // Sending the details of the blocklisted order via mail.
+    $this->sendBlockListedOrderMail($order, $updated_fraud_score);
 
   }
 
@@ -135,20 +144,19 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
    */
   public function getFraudScore(int $order_id) {
     // Query to get all fraud score for order id.
-    $result = $this->connection->select('commerce_fraud_fraud_score', 'f')
-      ->fields('f', ['fraud_score'])
-      ->condition('order_id', $order_id)
-      ->execute();
-    $score = 0;
-    foreach ($result as $row) {
-      $score += $row->fraud_score;
-    }
+    $query = $this->connection->select('commerce_fraud_fraud_score');
+    $query->condition('order_id', $order_id);
+    $query->addExpression('SUM(fraud_score)', 'fraud');
+    $result = $query->execute()->fetchCol();
 
-    return $score;
+    return $result[0];
   }
 
   /**
-   * {@inheritdoc}
+   * Cancels the order and sets its status to fradulent.
+   *
+   * @param \Drupal\commerce_order\Entity\OrderInterface $order
+   *
    */
   public function cancelFraudStatus(OrderInterface $order) {
     // Cancelling the order and setting the status to fraudulent.
@@ -162,15 +170,18 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * Sends email about blocklisted orders to the email choosen un settings.
+   *
+   * @param \Drupal\commerce_order\Entity\OrderInterface $order
+   * @param int $fraud_score
    */
-  public function sendBlackListedOrderMail(OrderInterface $order, int $fraud_score) {
+  public function sendBlockListedOrderMail(OrderInterface $order, int $fraud_score) {
 
     $mailManager = \Drupal::service('plugin.manager.mail');
 
     // Mail details.
     $module = 'commerce_fraud';
-    $key = 'send_blacklist';
+    $key = 'send_blocklist';
     $to = \Drupal::state()->get('send_email', \Drupal::config('system.site')->get('mail'));
     // Mail message.
     $params['message'] = $this->getMailMessage($order, $fraud_score);
@@ -182,14 +193,20 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
 
     // Setting a message about the mail.
     if ($result['result']) {
-      drupal_set_message(t('Message about the order has been sent.'));
+      $this->messenger->addMessage(t('Message about the order has been sent.'));
       return;
     }
-    drupal_set_message(t('There was a problem sending message and it was not sent.'), 'error');
+    $this->messenger->addWarning(t('There was a problem sending message and it was not sent.'), MessengerInterface::TYPE_WARNING);
   }
 
   /**
-   * {@inheritdoc}
+   * Return message with details about order.
+   *
+   * @param \Drupal\commerce_order\Entity\OrderInterface $order
+   * @param int $fraud_score
+   *
+   * @return string[]
+   *   Message.
    */
   public function getMailMessage(OrderInterface $order, int $fraud_score) {
     $breakdown = '';
