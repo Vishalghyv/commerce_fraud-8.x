@@ -6,9 +6,6 @@ use Drupal\Core\Form\FormStateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\commerce_order\Entity\OrderInterface;
 use Drupal\commerce_price\Price;
-use Drupal\commerce_price\Calculator;
-use Drupal\Component\Utility\Html;
-use Drupal\Component\Utility\NestedArray;
 
 /**
  * Provides the fraud rule.
@@ -75,7 +72,6 @@ class TotalPriceFraudRule extends FraudRuleBase {
       $values = $form_state->getValue($form['#parents']);
 
       $this->configuration['buy_amount'] = $values['buy']['amount'];
-      dpm($this->configuration['buy_amount']);
     }
   }
 
@@ -86,10 +82,10 @@ class TotalPriceFraudRule extends FraudRuleBase {
     $order_price = $order->getTotalPrice();
 
     $price = $this->configuration['buy_amount'];
-    if(!$price) {
+    if (!$price) {
       return FALSE;
     }
-    $new_price = new Price($price['number'],$price['currency_code']);
+    $new_price = new Price($price['number'], $price['currency_code']);
 
     return $order_price->greaterThan($new_price);
   }

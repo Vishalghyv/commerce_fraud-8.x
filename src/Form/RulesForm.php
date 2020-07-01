@@ -2,42 +2,55 @@
 
 namespace Drupal\commerce_fraud\Form;
 
-use Drupal\Core\Entity\ContentEntityForm;
+use Drupal\commerce_fraud\CommerceFraudManager;
+use Drupal\Component\Utility\Html;
+use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\entity\Form\EntityDuplicateFormTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-/**
- * Form controller for Rules edit forms.
- *
- * @ingroup commerce_fraud
- */
-class RulesForm extends ContentEntityForm {
+class RulesForm extends EntityForm {
+
+  use EntityDuplicateFormTrait;
 
   /**
-   * The current user account.
+   * The rule plugin manager.
    *
-   * @var \Drupal\Core\Session\AccountProxyInterface
+   * @var \Drupal\commerce_payment\PaymentGatewayManager
    */
-  protected $account;
+  protected $pluginManager;
+
+  /**
+   * Constructs a new RulesForm object.
+   *
+   * @param \Drupal\commerce_fraud\CommerceFraudManager $plugin_manager
+   *   The rule plugin manager.
+   */
+  public function __construct(CommerceFraudManager $plugin_manager) {
+    $this->pluginManager = $plugin_manager;
+  }
 
   /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
-    // Instantiates this form class.
-    $instance = parent::create($container);
-    $instance->account = $container->get('current_user');
-    return $instance;
+    return new static(
+      $container->get('plugin.manager.commerce_fraud_rule')
+    );
   }
 
   /**
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    /* @var \Drupal\commerce_fraud\Entity\Rules $entity */
-    $form = parent::buildForm($form, $form_state);
+    if (empty($this->pluginManager->getDefinitions())) {
+      $form['warning'] = [
+        '#markup' => $this->t('No rule plugins found.'),
+      ];
+      return $form;
+    }
 
-    return $form;
+    return parent::buildForm($form, $form_state);
   }
 
   /**
@@ -45,44 +58,99 @@ class RulesForm extends ContentEntityForm {
    */
   public function form(array $form, FormStateInterface $form_state) {
     $form = parent::form($form, $form_state);
+    /** @var \Drupal\commerce_fraud\Entity\RulesInterface $gateway */
+    $gateway = $this->entity;
+    $plugins = array_column($this->pluginManager->getDefinitions(), 'label', 'id');
+    asort($plugins);
 
-    $form['#tree'] = TRUE;
-    // By default an rule is preselected on the add form because the field
-    // is required. Select an empty value instead, to force the admin to choose.
-    if ($this->operation == 'add' && $this->entity->get('rule')->isEmpty()) {
-      if (!empty($form['rule']['widget'][0]['target_plugin_id'])) {
-        $form['rule']['widget'][0]['target_plugin_id']['#empty_value'] = '';
-        $form['rule']['widget'][0]['target_plugin_id']['#default_value'] = '';
-        if (empty($form_state->getValue(['rule', 0, 'target_plugin_id']))) {
-          unset($form['rule']['widget'][0]['target_plugin_configuration']);
-        }
-      }
+    // Use the first available plugin as the default value.
+    if (!$gateway->getPluginId()) {
+      $plugin_ids = array_keys($plugins);
+      $plugin = reset($plugin_ids);
+      $gateway->setPluginId($plugin);
     }
+    // The form state will have a plugin value if #ajax was used.
+    $plugin = $form_state->getValue('plugin', $gateway->getPluginId());
+    // Pass the plugin configuration only if the plugin hasn't been changed via #ajax.
+    $plugin_configuration = $gateway->getPluginId() == $plugin ? $gateway->getPluginConfiguration() : [];
 
+    $wrapper_id = Html::getUniqueId('rules-form');
+    $form['#prefix'] = '<div id="' . $wrapper_id . '">';
+    $form['#suffix'] = '</div>';
+    $form['#tree'] = TRUE;
+
+    $form['label'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Name'),
+      '#maxlength' => 255,
+      '#default_value' => $gateway->label(),
+      '#required' => TRUE,
+    ];
+    $form['id'] = [
+      '#type' => 'machine_name',
+      '#default_value' => $gateway->id(),
+      '#machine_name' => [
+        'exists' => '\Drupal\commerce_fraud\Entity\Rules::load',
+      ],
+      '#disabled' => !$gateway->isNew(),
+    ];
+    $form['plugin'] = [
+      '#type' => 'radios',
+      '#title' => $this->t('Plugin'),
+      '#options' => $plugins,
+      '#default_value' => $plugin,
+      '#required' => TRUE,
+      '#disabled' => !$gateway->isNew(),
+      '#ajax' => [
+        'callback' => '::ajaxRefresh',
+        'wrapper' => $wrapper_id,
+      ],
+    ];
+    $form['configuration'] = [
+      '#type' => 'commerce_plugin_configuration',
+      '#plugin_type' => 'commerce_payment_gateway',
+      '#plugin_id' => $plugin,
+      '#default_value' => $plugin_configuration,
+    ];
+    $form['status'] = [
+      '#type' => 'radios',
+      '#title' => $this->t('Status'),
+      '#options' => [
+        0 => $this->t('Disabled'),
+        1  => $this->t('Enabled'),
+      ],
+      '#default_value' => (int) $gateway->status(),
+    ];
+
+    return $form;
+  }
+
+  /**
+   * Ajax callback.
+   */
+  public static function ajaxRefresh(array $form, FormStateInterface $form_state) {
     return $form;
   }
 
   /**
    * {@inheritdoc}
    */
+  public function submitForm(array &$form, FormStateInterface $form_state) {
+    parent::submitForm($form, $form_state);
+
+    /** @var \Drupal\commerce_payment\Entity\PaymentGatewayInterface $gateway */
+    $gateway = $this->entity;
+    $gateway->setPluginConfiguration($form_state->getValue(['configuration']));
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function save(array $form, FormStateInterface $form_state) {
-    $entity = $this->entity;
-
-    $status = parent::save($form, $form_state);
-
-    switch ($status) {
-      case SAVED_NEW:
-        $this->messenger()->addMessage($this->t('Created the %label Rules.', [
-          '%label' => $entity->label(),
-        ]));
-        break;
-
-      default:
-        $this->messenger()->addMessage($this->t('Saved the %label Rules.', [
-          '%label' => $entity->label(),
-        ]));
-    }
-    $form_state->setRedirect('entity.rules.canonical', ['rules' => $entity->id()]);
+    $this->entity->save();
+    $this->postSave($this->entity, $this->operation);
+    $this->messenger()->addMessage($this->t('Saved the %label rule.', ['%label' => $this->entity->label()]));
+    $form_state->setRedirect('entity.rules.collection');
   }
 
 }

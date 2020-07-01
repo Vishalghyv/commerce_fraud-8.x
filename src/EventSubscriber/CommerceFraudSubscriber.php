@@ -156,7 +156,6 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
    * Cancels the order and sets its status to fradulent.
    *
    * @param \Drupal\commerce_order\Entity\OrderInterface $order
-   *
    */
   public function cancelFraudStatus(OrderInterface $order) {
     // Cancelling the order and setting the status to fraudulent.

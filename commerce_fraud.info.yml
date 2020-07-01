@@ -3,6 +3,7 @@ type: module
 description: 'Detects potentially fraudulent orders'
 core: '8.x'
 package: Commerce
+configure: entity.rules.collection
 dependencies:
   - action
   - commerce

@@ -5,6 +5,7 @@ namespace Drupal\commerce_fraud\Entity;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Entity\ContentEntityBase;
+use Drupal\Core\Config\Entity\ConfigEntityBase;
 use Drupal\Core\Entity\EntityChangedTrait;
 use Drupal\Core\Entity\EntityPublishedTrait;
 use Drupal\Core\Entity\EntityTypeInterface;
@@ -16,35 +17,39 @@ use Drupal\commerce_fraud\Plugin\Commerce\FraudRule\FraudRuleInterface;
  *
  * @ingroup commerce_fraud
  *
- * @ContentEntityType(
+ * @ConfigEntityType(
  *   id = "rules",
  *   label = @Translation("Rules"),
  *   handlers = {
  *     "view_builder" = "Drupal\Core\Entity\EntityViewBuilder",
  *     "list_builder" = "Drupal\commerce_fraud\RulesListBuilder",
  *     "views_data" = "Drupal\commerce_fraud\Entity\RulesViewsData",
- *
  *     "form" = {
  *       "default" = "Drupal\commerce_fraud\Form\RulesForm",
  *       "add" = "Drupal\commerce_fraud\Form\RulesForm",
  *       "edit" = "Drupal\commerce_fraud\Form\RulesForm",
- *       "delete" = "Drupal\Core\Entity\ContentEntityDeleteForm",
+ *       "delete" = "Drupal\commerce_fraud\Form\RulesDeleteForm",
  *     },
  *     "route_provider" = {
  *       "default" = "Drupal\entity\Routing\AdminHtmlRouteProvider",
  *     },
- *     "access" = "Drupal\commerce_fraud\RulesAccessControlHandler",
  *   },
- *   base_table = "rules",
- *   translatable = FALSE,
- *   admin_permission = "administer rules entities",
+ *   config_prefix = "rules",
+ *   admin_permission = "administer site configuration",
  *   entity_keys = {
  *     "id" = "id",
- *     "label" = "name",
+ *     "label" = "label",
  *     "uuid" = "uuid",
- *     "uid" = "user_id",
- *     "langcode" = "langcode",
- *     "published" = "status",
+ *     "weight" = "weight",
+ *     "status" = "status",
+ *   },
+ *   config_export = {
+ *     "id",
+ *     "label",
+ *     "weight",
+ *     "status",
+ *     "plugin",
+ *     "configuration",
  *   },
  *   links = {
  *     "canonical" = "/admin/commerce/rules/{rules}",
@@ -55,220 +60,144 @@ use Drupal\commerce_fraud\Plugin\Commerce\FraudRule\FraudRuleInterface;
  *   },
  * )
  */
-class Rules extends ContentEntityBase implements RulesInterface {
+class Rules extends ConfigEntityBase implements RulesInterface {
 
-  use EntityChangedTrait;
-  use EntityPublishedTrait;
+  /**
+   * The rule ID.
+   *
+   * @var string
+   */
+  protected $id;
+
+  /**
+   * The rule label.
+   *
+   * @var string
+   */
+  protected $label;
+
+  /**
+   * The rule weight.
+   *
+   * @var int
+   */
+  protected $weight;
+
+  /**
+   * The plugin ID.
+   *
+   * @var string
+   */
+  protected $plugin;
+
+  /**
+   * The plugin configuration.
+   *
+   * @var array
+   */
+  protected $configuration = [];
+
+  /**
+   * The plugin collection that holds the rule plugin.
+   *
+   * @var \Drupal\commerce\CommerceSinglePluginCollection
+   */
+  protected $pluginCollection;
 
   /**
    * {@inheritdoc}
    */
-  public static function preCreate(EntityStorageInterface $storage_controller, array &$values) {
-    parent::preCreate($storage_controller, $values);
-    $values += [
-      'user_id' => \Drupal::currentUser()->id(),
+  public function getWeight() {
+    return $this->weight;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setWeight($weight) {
+    $this->weight = $weight;
+    return $weight;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getPlugin() {
+    return $this->getPluginCollection()->get($this->plugin);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getPluginId() {
+    return $this->plugin;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setPluginId($plugin_id) {
+    $this->plugin = $plugin_id;
+    $this->configuration = [];
+    $this->pluginCollection = NULL;
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getPluginConfiguration() {
+    return $this->configuration;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setPluginConfiguration(array $configuration) {
+    $this->configuration = $configuration;
+    $this->pluginCollection = NULL;
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getPluginCollections() {
+    return [
+      'configuration' => $this->getPluginCollection(),
     ];
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getName() {
-    return $this->get('name')->value;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function setName($name) {
-    $this->set('name', $name);
-    return $this;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getCreatedTime() {
-    return $this->get('created')->value;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function setCreatedTime($timestamp) {
-    $this->set('created', $timestamp);
-    return $this;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getOwner() {
-    return $this->get('user_id')->entity;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getOwnerId() {
-    return $this->get('user_id')->target_id;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function setOwnerId($uid) {
-    $this->set('user_id', $uid);
-    return $this;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getRule() {
-    if (!$this->get('rule')->isEmpty()) {
-      return $this->get('rule')->first()->getTargetInstance();
+  public function set($property_name, $value) {
+    // Invoke the setters to clear related properties.
+    if ($property_name == 'plugin') {
+      $this->setPluginId($value);
+    }
+    elseif ($property_name == 'configuration') {
+      $this->setPluginConfiguration($value);
+    }
+    else {
+      return parent::set($property_name, $value);
     }
   }
 
   /**
-   * {@inheritdoc}
+   * Gets the plugin collection that holds the rule plugin.
+   *
+   * Ensures the plugin collection is initialized before returning it.
+   *
+   * @return \Drupal\commerce\CommerceSinglePluginCollection
+   *   The plugin collection.
    */
-  public function setRule(FraudRuleInterface $rule) {
-    $this->set('rule', [
-      'target_plugin_id' => $rule->getPluginId(),
-    ]);
-    return $this;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getCounter() {
-    return $this->get('counter')->value;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function setCounter(int $counter) {
-    $this->set('counter', $counter);
-    return $this;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getStatus() {
-    return $this->get('status')->value;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function setStatus(bool $status) {
-    $this->set('status', $status);
-    return $this;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function setOwner(UserInterface $account) {
-    $this->set('user_id', $account->id());
-    return $this;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function baseFieldDefinitions(EntityTypeInterface $entity_type) {
-    $fields = parent::baseFieldDefinitions($entity_type);
-
-    // Add the published field.
-    $fields += static::publishedBaseFieldDefinitions($entity_type);
-
-    $fields['user_id'] = BaseFieldDefinition::create('entity_reference')
-      ->setLabel(t('Authored by'))
-      ->setDescription(t('The user ID of author of the Rules entity.'))
-      ->setRevisionable(TRUE)
-      ->setSetting('target_type', 'user')
-      ->setSetting('handler', 'default')
-      ->setDisplayOptions('view', [
-        'label' => 'hidden',
-        'type' => 'author',
-        'weight' => 0,
-      ])
-      ->setDisplayOptions('form', [
-        'type' => 'entity_reference_autocomplete',
-        'weight' => 5,
-        'settings' => [
-          'match_operator' => 'CONTAINS',
-          'size' => '60',
-          'autocomplete_type' => 'tags',
-          'placeholder' => '',
-        ],
-      ])
-      ->setDisplayConfigurable('form', TRUE)
-      ->setDisplayConfigurable('view', TRUE);
-
-    $fields['name'] = BaseFieldDefinition::create('string')
-      ->setLabel(t('Name'))
-      ->setDescription(t('The name of the Rules entity.'))
-      ->setSettings([
-        'max_length' => 50,
-        'text_processing' => 0,
-      ])
-      ->setDefaultValue('')
-      ->setDisplayOptions('view', [
-        'label' => 'above',
-        'type' => 'string',
-        'weight' => -4,
-      ])
-      ->setDisplayOptions('form', [
-        'type' => 'string_textfield',
-        'weight' => -4,
-      ])
-      ->setDisplayConfigurable('form', TRUE)
-      ->setDisplayConfigurable('view', TRUE)
-      ->setRequired(TRUE);
-
-    $fields['rule'] = BaseFieldDefinition::create('commerce_fraud_item:commerce_fraud_rule')
-      ->setLabel(t('Rule type'))
-      ->setCardinality(1)
-      ->setRequired(TRUE)
-      ->setDisplayOptions('form', [
-        'type' => 'commerce_plugin_select',
-        'weight' => -3,
-      ]);
-
-    $fields['counter'] = BaseFieldDefinition::create('decimal')
-      ->setLabel(t('Counter'))
-      ->setDescription(t('Fraud count to be increased or decreased on application of this rule'))
-      ->setDefaultValue(1)
-      ->setDisplayOptions('form', [
-        'type' => 'commerce_number',
-        'weight' => -2,
-      ])
-      ->setDisplayConfigurable('form', TRUE)
-      ->setDisplayConfigurable('view', TRUE);
-
-    $fields['status']->setDescription(t('A boolean indicating whether the Rules is active.'))
-      ->setLabel(t('Status'))
-      ->setDisplayOptions('form', [
-        'type' => 'boolean_checkbox',
-        'weight' => -1,
-      ]);
-
-    $fields['created'] = BaseFieldDefinition::create('created')
-      ->setLabel(t('Created'))
-      ->setDescription(t('The time that the entity was created.'));
-
-    $fields['changed'] = BaseFieldDefinition::create('changed')
-      ->setLabel(t('Changed'))
-      ->setDescription(t('The time that the entity was last edited.'));
-
-    return $fields;
+  protected function getPluginCollection() {
+    if (!$this->pluginCollection) {
+      $plugin_manager = \Drupal::service('plugin.manager.commerce_fraud_rule');
+      $this->pluginCollection = new CommerceSinglePluginCollection($plugin_manager, $this->plugin, $this->configuration, $this);
+    }
+    return $this->pluginCollection;
   }
 
 }

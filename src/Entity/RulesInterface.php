@@ -2,104 +2,76 @@
 
 namespace Drupal\commerce_fraud\Entity;
 
-use Drupal\Core\Entity\ContentEntityInterface;
-use Drupal\Core\Entity\EntityChangedInterface;
-use Drupal\Core\Entity\EntityPublishedInterface;
-use Drupal\user\EntityOwnerInterface;
-use Drupal\commerce_fraud\Plugin\Commerce\FraudRule\FraudRuleInterface;
+use Drupal\Core\Config\Entity\ConfigEntityInterface;
+use Drupal\Core\Entity\EntityWithPluginCollectionInterface;
 
 /**
- * Provides an interface for defining Rules entities.
+ * Defines the interface for rule configuration entities.
  *
- * @ingroup commerce_fraud
+ * Stores configuration for rule plugins.
  */
-interface RulesInterface extends ContentEntityInterface, EntityChangedInterface, EntityPublishedInterface, EntityOwnerInterface {
+interface RulesInterface extends ConfigEntityInterface, EntityWithPluginCollectionInterface {
 
   /**
-   * Add get/set methods for your configuration properties here.
-   */
-
-  /**
-   * Gets the Rules name.
+   * Gets the rule weight.
    *
    * @return string
-   *   Name of the Rules.
+   *   The rule weight.
    */
-  public function getName();
+  public function getWeight();
 
   /**
-   * Sets the Rules name.
+   * Sets the rule weight.
    *
-   * @param string $name
-   *   The Rules name.
-   *
-   * @return \Drupal\commerce_fraud\Entity\RulesInterface
-   *   The called Rules entity.
-   */
-  public function setName($name);
-
-  /**
-   * Gets the Rules creation timestamp.
-   *
-   * @return int
-   *   Creation timestamp of the Rules.
-   */
-  public function getCreatedTime();
-
-  /**
-   * Sets the Rules creation timestamp.
-   *
-   * @param int $timestamp
-   *   The Rules creation timestamp.
-   *
-   * @return \Drupal\commerce_fraud\Entity\RulesInterface
-   *   The called Rules entity.
-   */
-  public function setCreatedTime($timestamp);
-
-  /**
-   * Gets the rule.
-   *
-   * @return \Drupal\commerce_fraud\Plugin\Commerce\FraudRule\FraudRuleInterface
-   */
-  public function getRule();
-
-  /**
-   * Gets the Rules counter.
-   *
-   * @return int
-   */
-  public function getCounter();
-
-  /**
-   * Sets the Rules counter.
-   *
-   * @param int
-   */
-  public function setCounter(int $counter);
-
-  /**
-   * Gets the Rules Status.
-   *
-   * @return bool
-   */
-  public function getStatus();
-
-  /**
-   * Sets the Rules Status.
-   *
-   * @param bool
-   */
-  public function setStatus(bool $status);
-
-  /**
-   * Sets the rule.
-   *
-   * @param \Drupal\commerce_fraud\Plugin\Commerce\FraudRule\FraudRuleInterface $rule
-   *   The rule.
+   * @param int $weight
+   *   The rule weight.
    *
    * @return $this
    */
-  public function setRule(FraudRuleInterface $rule);
+  public function setWeight($weight);
+
+  /**
+   * Gets the rule plugin.
+   *
+   * @return \Drupal\commerce_payment\Plugin\Commerce\PaymentGateway\PaymentGatewayInterface
+   *   The rule plugin.
+   */
+  public function getPlugin();
+
+  /**
+   * Gets the rule plugin ID.
+   *
+   * @return string
+   *   The rule plugin ID.
+   */
+  public function getPluginId();
+
+  /**
+   * Sets the rule plugin ID.
+   *
+   * @param string $plugin_id
+   *   The rule plugin ID.
+   *
+   * @return $this
+   */
+  public function setPluginId($plugin_id);
+
+  /**
+   * Gets the rule plugin configuration.
+   *
+   * @return array
+   *   The rule plugin configuration.
+   */
+  public function getPluginConfiguration();
+
+  /**
+   * Sets the rule plugin configuration.
+   *
+   * @param array $configuration
+   *   The rule plugin configuration.
+   *
+   * @return $this
+   */
+  public function setPluginConfiguration(array $configuration);
 
 }

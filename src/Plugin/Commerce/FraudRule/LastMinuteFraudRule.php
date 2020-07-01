@@ -71,7 +71,6 @@ class LastMinuteFraudRule extends FraudRuleBase {
     $form['#title'] = $this->t('Rule');
     $form['#collapsible'] = FALSE;
     // Remove the main fieldset.
-
     $form['time'] = [
       '#type' => 'fieldset',
       '#title' => $this->t('Time limit'),

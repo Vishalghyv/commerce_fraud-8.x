@@ -1,0 +1,28 @@
+commerce_fraud.rules.*:
+  type: config_entity
+  label: 'Rules'
+  mapping:
+    id:
+      type: string
+      label: 'Machine-readable name'
+    label:
+      type: label
+      label: 'Label'
+    weight:
+      type: integer
+      label: 'Weight'
+    plugin:
+      type: string
+      label: 'Plugin'
+    configuration:
+      type: commerce_fraud.rules.plugin.[%parent.plugin]
+
+commerce_fraud.rules.plugin.*:
+  type: commerce_rules_configuration
+
+commerce_rules_configuration:
+  type: mapping
+  mapping:
+    display_inclusive:
+      type: boolean
+      label: 'Display taxes of this type inclusive in product prices'
