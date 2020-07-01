@@ -108,9 +108,14 @@ class RulesForm extends EntityForm {
     ];
     $form['configuration'] = [
       '#type' => 'commerce_plugin_configuration',
-      '#plugin_type' => 'commerce_payment_gateway',
+      '#plugin_type' => 'commerce_fraud_rule',
       '#plugin_id' => $plugin,
       '#default_value' => $plugin_configuration,
+    ];
+    $form['counter'] = [
+      '#type' => 'number',
+      '#title' => $this->t('Counter'),
+      '#default_value' => 5,
     ];
     $form['status'] = [
       '#type' => 'radios',

@@ -31,6 +31,24 @@ interface RulesInterface extends ConfigEntityInterface, EntityWithPluginCollecti
   public function setWeight($weight);
 
   /**
+   * Gets the rule counter.
+   *
+   * @return string
+   *   The rule counter.
+   */
+  public function getCounter();
+
+  /**
+   * Sets the rule counter.
+   *
+   * @param int $counter
+   *   The rule counter.
+   *
+   * @return $this
+   */
+  public function setCounter($counter);
+
+  /**
    * Gets the rule plugin.
    *
    * @return \Drupal\commerce_payment\Plugin\Commerce\PaymentGateway\PaymentGatewayInterface

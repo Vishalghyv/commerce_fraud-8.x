@@ -3,6 +3,7 @@
 namespace Drupal\commerce_fraud\Entity;
 
 use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\commerce\CommerceSinglePluginCollection;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Config\Entity\ConfigEntityBase;
@@ -23,7 +24,6 @@ use Drupal\commerce_fraud\Plugin\Commerce\FraudRule\FraudRuleInterface;
  *   handlers = {
  *     "view_builder" = "Drupal\Core\Entity\EntityViewBuilder",
  *     "list_builder" = "Drupal\commerce_fraud\RulesListBuilder",
- *     "views_data" = "Drupal\commerce_fraud\Entity\RulesViewsData",
  *     "form" = {
  *       "default" = "Drupal\commerce_fraud\Form\RulesForm",
  *       "add" = "Drupal\commerce_fraud\Form\RulesForm",
@@ -84,6 +84,13 @@ class Rules extends ConfigEntityBase implements RulesInterface {
   protected $weight;
 
   /**
+   * The rule counter.
+   *
+   * @var int
+   */
+  protected $counter;
+
+  /**
    * The plugin ID.
    *
    * @var string
@@ -117,6 +124,21 @@ class Rules extends ConfigEntityBase implements RulesInterface {
   public function setWeight($weight) {
     $this->weight = $weight;
     return $weight;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getCounter() {
+    return $this->counter;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setCounter($counter) {
+    $this->counter = $counter;
+    return $counter;
   }
 
   /**

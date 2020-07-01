@@ -16,6 +16,9 @@ commerce_fraud.rules.*:
       label: 'Plugin'
     configuration:
       type: commerce_fraud.rules.plugin.[%parent.plugin]
+    counter:
+      type: integer
+      label: 'Counter'
 
 commerce_fraud.rules.plugin.*:
   type: commerce_rules_configuration
@@ -25,4 +28,4 @@ commerce_rules_configuration:
   mapping:
     display_inclusive:
       type: boolean
-      label: 'Display taxes of this type inclusive in product prices'
+      label: 'Displays Status of rule'
