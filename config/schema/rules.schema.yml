@@ -1,0 +1,21 @@
+commerce_fraud.rules.*:
+  type: config_entity
+  label: 'Rules'
+  mapping:
+    id:
+      type: string
+      label: 'Machine-readable name'
+    label:
+      type: label
+      label: 'Label'
+    weight:
+      type: integer
+      label: 'Weight'
+    plugin:
+      type: string
+      label: 'Plugin'
+    configuration:
+      type: commerce_fraud.rules.plugin.[%parent.plugin]
+    counter:
+      type: integer
+      label: 'Counter'

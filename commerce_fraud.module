@@ -2,301 +2,69 @@
 
 /**
  * @file
- * Commerce_fraud main file.
+ * Contains commerce_fraud.module.
  */
 
-/**
- * Implements hook_menu().
- */
-function commerce_fraud_menu() {
-  $items['admin/commerce/config/fraud'] = array(
-    'title' => 'Fraud Score Settings',
-    'description' => 'Manage the penalties, thresholds, and caps for the Fraud Score.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('commerce_fraud_admin_settings'),
-    'access arguments' => array('administer frauds'),
-    'file' => '/includes/commerce_fraud.admin.inc',
-  );
-
-  if (module_exists('commerce_kickstart_menus')) {
-    $items['admin/commerce/config/fraud']['parent'] = 'admin/commerce/config/advanced-settings';
-  }
-
-  return $items;
-}
-
-/**
- * Implements hook_commerce_order_status_info().
- */
-function commerce_fraud_commerce_order_status_info() {
-  $order_statuses = array();
-
-  $order_statuses['fraudulent'] = array(
-    'name' => 'fraudulent',
-    'title' => t('Fraudulent'),
-    'state' => 'canceled',
-  );
-
-  $order_statuses['high_risk'] = array(
-    'name' => 'high_risk',
-    'title' => t('High Risk'),
-    'state' => 'pending',
-  );
-
-  return $order_statuses;
-}
-
-/**
- * Implements hook_permission().
- */
-function commerce_fraud_permission() {
-  return array(
-    'administer frauds' => array(
-      'title' => t('Administer Fraud Settings'),
-      'description' => t('Allows users to configure the Commerce Fraud settings.'),
-      'restrict access' => TRUE,
-    ),
-    'view order fraud notes' => array(
-      'title' => t('View order fraud notes'),
-      'description' => t('Allows users to view fraud notes for orders they have access to.'),
-      'restrict access' => TRUE,
-    ),
-  );
-}
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Url;
 
 /**
  * Implements hook_help().
  */
-function commerce_fraud_help($path) {
-  switch ($path) {
-    case 'admin/commerce/config/fraud':
-      return '<p>' . t('This page lets you manage the Commerce Fraud settings.') . '</p>';
+function commerce_fraud_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the commerce_fraud module.
+    case 'help.page.commerce_fraud':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Detects potentially fraudulent orders') . '</p>';
+      return $output;
+
+    default:
   }
 }
 
 /**
- * Implements hook_views_api().
+ * Implements hook_entity_operation().
  */
-function commerce_fraud_views_api() {
-  return array(
-    'api' => 3,
-    'path' => drupal_get_path('module', 'commerce_fraud') . '/includes/views',
-  );
+function commerce_fraud_entity_operation_alter(array &$operations, EntityInterface $entity) {
+  // Make sure we are modifying only order entity.
+  if ($entity->getEntityTypeId() !== 'commerce_order') {
+    return;
+  }
+  $resetUrl = Url::fromRoute('entity.commerce_order.reset_page', ['commerce_order' => $entity->id()]);
+
+  $operations['reset_fraud_score'] = [
+    'title' => t('Reset Fraud'),
+    'weight' => 50,
+    'url' => $resetUrl,
+  ];
 }
 
 /**
- * Implements hook_entity_view_alter().
+ * Implements hook_mail().
  */
-function commerce_fraud_entity_view_alter(&$build, $type) {
-  if ($type == 'commerce_order') {
-    if (!user_access('view order fraud notes')) {
-      return;
-    }
+function commerce_fraud_mail($key, &$message, $params) {
+  $options = [
+    'langcode' => $message['langcode'],
+  ];
 
-    $breakdown = array(
-      '#prefix' => '<div class="field"><div class="field-label">' . t('Fraud Information: ') . '</div><div class="field-items">',
-      '#suffix' => '</div></div>',
-      '#markup' => commerce_fraud_get_fraud_notes_for_order($build['#entity']->order_number),
-    );
-    $build['commerce_fraud_points_breakdown'] = $breakdown;
+  switch ($key) {
+    case 'send_blocklist':
+      $message['from'] = \Drupal::config('system.site')->get('mail');
+      $message['subject'] = t('New Blocklisted order - order id: @order_id', ['@order_id' => $params['order_id']], $options);
+      $message['body'][] = $params['message'];
+      break;
   }
 }
 
 /**
- * Implements hook_theme_registry_alter().
+ * Add the state "fraudulent" with label "Fraudulent" for the `order_default` workflow.
+ *
+ * @param array $workflows
+ *   Workflow definitions, keyed by plugin ID.
  */
-function commerce_fraud_theme_registry_alter(&$theme_registry) {
-  if (!empty($theme_registry['commerce_order__backoffice'])) {
-    $theme_registry['commerce_order__backoffice']['path'] = drupal_get_path('module', 'commerce_fraud') . '/templates';
-    $theme_registry['commerce_order__backoffice']['template'] = 'commerce-fraud--order-backoffice';
-  }
-}
-
-/**
- * Checks to see if the order owner has an order with a status 'IN'
- * $order_statuses, was created within $minutes of the current $order.
- *
- * @param $order
- * @param $minutes
- * @param array $order_statuses
- *
- * @return bool
- */
-function commerce_fraud_last_order($order, $minutes, $order_statuses = array('completed')) {
-  $query = db_select('commerce_order', 'o')
-    ->fields('o', array('order_id'))
-    ->condition('uid', $order->uid)
-    ->condition('status', $order_statuses, 'IN')
-    ->condition('created', time() - ($minutes * 60), '>=');
-
-  return !empty($query->execute()->fetchAssoc());
-}
-
-/**
- * Returns a timestamp matching x days before today.
- *
- * @param $minutes
- *
- * @return int
- */
-function commerce_fraud_timestamp_from_minutes($minutes) {
-  $date = new DateTimeImmutable();
-  $date = $date->modify('- ' . $minutes . ' minutes');
-
-  return $date->getTimestamp();
-}
-
-/**
- * Returns the current fraud score for order id.
- *
- * @param $order_id
- *
- * @return int
- */
-function commerce_fraud_get_fraud_score_for_order_id($order_id) {
-  $result = db_select('commerce_fraud_fraud_score', 'f')
-    ->fields('f', array('fraud_score'))
-    ->condition('order_id', $order_id)
-    ->execute();
-  $score = 0;
-  foreach ($result as $row) {
-    $score += $row->fraud_score;
-  }
-  return $score;
-}
-
-/**
- * Builds a formatted string of the fraud score breakdown.
- *
- * @param $order_id
- *
- * @return string
- *   Formatted breakdown of fraud score.
- */
-function commerce_fraud_get_fraud_notes_for_order($order_id) {
-  $breakdown = '';
-  $total = commerce_fraud_get_fraud_score_for_order_id($order_id);
-  if ($total <= 0) {
-    return t('No potential fraudulent activity.');
-  }
-  else {
-    $breakdown .= '<strong>Total Points: </strong>' . $total;
-  }
-
-  $result = db_select('commerce_fraud_fraud_score', 'f')
-    ->fields('f', array('note'))
-    ->condition('order_id', $order_id)
-    ->execute();
-
-  foreach ($result as $row) {
-    $breakdown .= '<br>' . $row->note;
-  }
-
-  return $breakdown;
-}
-
-/**
- * Add points to the fraud count of an order.
- *
- * @param $order
- *   The current commerce_order.
- * @param int $counter
- *   Fraud points to add to the order.
- * @param string $description
- *   The description of the rule.
- */
-function commerce_fraud_write_record($order, $counter, $description = '') {
-  db_insert('commerce_fraud_fraud_score')
-    ->fields(array(
-      'order_id' => $order->order_id,
-      'fraud_score' => $counter,
-      'note' => $description . ": " . $counter,
-    ))
-    ->execute();
-  rules_invoke_event('commerce_fraud_count_changed', $order);
-}
-
-/**
- * Reset the fraud count of an order.
- *
- * @param $order
- *   The current commerce_order.
- */
-function commerce_fraud_reset_fraud_count($order) {
-  db_delete('commerce_fraud_fraud_score')
-    ->condition('order_id', $order->order_id)
-    ->execute();
-  rules_invoke_event('commerce_fraud_count_changed', $order);
-}
-
-/**
- * Whitelist condition callback.
- *
- * @param $order
- *
- * @return bool
- */
-function commerce_fraud_is_whitelisted($order) {
-  if ($fraud_score = commerce_fraud_get_fraud_score_for_order_id($order->order_id)) {
-    $whitelist_cap = variable_get('commerce_fraud_greylist_cap', 10);
-    return $fraud_score < $whitelist_cap;
-  }
-  return TRUE;
-}
-
-/**
- * Greylist condition callback.
- *
- * @param $order
- *
- * @return bool
- */
-function commerce_fraud_is_greylisted($order) {
-  if ($fraud_score = commerce_fraud_get_fraud_score_for_order_id($order->order_id)) {
-    $greylist_lower_cap = variable_get('commerce_fraud_greylist_cap', 10);
-    $greylist_upper_cap = variable_get('commerce_fraud_blacklist_cap', 20);
-    return $fraud_score >= $greylist_lower_cap && $fraud_score < $greylist_upper_cap;
-  }
-  return FALSE;
-}
-
-/**
- * Blacklist condition callback.
- *
- * @param $order
- *
- * @return bool
- */
-function commerce_fraud_is_blacklisted($order) {
-  if ($fraud_score = commerce_fraud_get_fraud_score_for_order_id($order->order_id)) {
-    $blacklist_cap = variable_get('commerce_fraud_blacklist_cap', 20);
-    return $fraud_score >= $blacklist_cap;
-  }
-  return FALSE;
-}
-
-/**
- * Checks the street address for a PO Box.
- *
- * @param $order
- *
- * @return bool
- */
-function commerce_fraud_order_has_pobox($order) {
-  $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
-  $shipping_address = $order_wrapper->commerce_customer_shipping->commerce_customer_address;
-  return preg_match("/(p(.*)?o(.*?)?)(\s+)?(bo?x)?(\s+)?[#]?(\d+)?/i", $shipping_address->thoroughfare->value());
-}
-
-/**
- * Return an array of fraud levels.
- *
- * @return array
- */
-function commerce_fraud_order_condition_fraud_level_operator_options() {
-  return array(
-    'commerce_fraud_is_whitelisted' => 'Whitelisted',
-    'commerce_fraud_is_greylisted' => 'Greylisted',
-    'commerce_fraud_is_blacklisted' => 'Blacklisted',
-  );
+function commerce_fraud_workflows_alter(array &$workflows) {
+  $workflows['order_default']['states']['fraudulent']['label'] = 'Fraudulent';
 }
