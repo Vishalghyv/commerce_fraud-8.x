@@ -12,11 +12,11 @@ use Symfony\Component\EventDispatcher\Event;
 class FraudEvent extends Event {
 
   /**
-   * Count.
+   * score.
    *
    * @var int
    */
-  protected $count;
+  protected $score;
 
   /**
    * Order id.
@@ -35,27 +35,27 @@ class FraudEvent extends Event {
   /**
    * FraudEvent constructor.
    *
-   * @param int $count
-   *   Counter.
+   * @param int $score
+   *   Score.
    * @param int $orderId
    *   Order ID.
    * @param string $note
    *   Note.
    */
-  public function __construct($count, $orderId, $note) {
-    $this->count = $count;
+  public function __construct($score, $orderId, $note) {
+    $this->score = $score;
     $this->orderId = $orderId;
     $this->note = $note;
   }
 
   /**
-   * Return count.
+   * Return score.
    *
    * @return string
-   *   Counter.
+   *   Score.
    */
-  public function getCount() {
-    return $this->count;
+  public function getscore() {
+    return $this->score;
   }
 
   /**

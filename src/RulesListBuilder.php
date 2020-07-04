@@ -20,7 +20,7 @@ class RulesListBuilder extends EntityListBuilder {
     $header['id'] = $this->t('Rules ID');
     $header['name'] = $this->t('Name');
     $header['rule_name'] = $this->t('Rule name');
-    $header['counter'] = $this->t('Counter');
+    $header['score'] = $this->t('Score');
     return $header + parent::buildHeader();
   }
 
@@ -36,7 +36,7 @@ class RulesListBuilder extends EntityListBuilder {
       ['rules' => $entity->id()]
     );
     $row['rule_name'] = $entity->getPlugin()->getLabel();
-    $row['counter'] = $entity->getCounter();
+    $row['score'] = $entity->getScore();
     return $row + parent::buildRow($entity);
   }
 

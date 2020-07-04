@@ -32,17 +32,15 @@ use Drupal\Core\Config\Entity\ConfigEntityBase;
  *     "id" = "id",
  *     "label" = "label",
  *     "uuid" = "uuid",
- *     "weight" = "weight",
  *     "status" = "status",
  *   },
  *   config_export = {
  *     "id",
  *     "label",
- *     "weight",
  *     "status",
  *     "plugin",
  *     "configuration",
- *     "counter",
+ *     "score",
  *   },
  *   links = {
  *     "canonical" = "/admin/commerce/rules/{rules}",
@@ -70,18 +68,11 @@ class Rules extends ConfigEntityBase implements RulesInterface {
   protected $label;
 
   /**
-   * The rule weight.
+   * The rule score.
    *
    * @var int
    */
-  protected $weight;
-
-  /**
-   * The rule counter.
-   *
-   * @var int
-   */
-  protected $counter;
+  protected $score;
 
   /**
    * The plugin ID.
@@ -107,31 +98,16 @@ class Rules extends ConfigEntityBase implements RulesInterface {
   /**
    * {@inheritdoc}
    */
-  public function getWeight() {
-    return $this->weight;
+  public function getScore() {
+    return $this->score;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function setWeight($weight) {
-    $this->weight = $weight;
-    return $weight;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getCounter() {
-    return $this->counter;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function setCounter($counter) {
-    $this->counter = $counter;
-    return $counter;
+  public function setScore($score) {
+    $this->score = $score;
+    return $score;
   }
 
   /**

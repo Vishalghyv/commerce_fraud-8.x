@@ -101,8 +101,8 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
         continue;
       }
 
-      // Get the counter and name set in the entity.
-      $fraud_count = $rule->getCounter();
+      // Get the score and name set in the entity.
+      $fraud_score = $rule->getScore();
       $rule_name = $rule->getPLugin()->getLabel();
 
       // Add a log to order activity.
@@ -110,11 +110,11 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
       $logStorage->generate($order, 'fraud_rule_name', ['rule_name' => $rule_name])->save();
 
       // Detail for Fraud Event.
-      $note = $rule_name . ": " . $fraud_count;
-      $event = new FraudEvent($fraud_count, $order->id(), $note);
+      $note = $rule_name . ": " . $fraud_score;
+      $event = new FraudEvent($fraud_score, $order->id(), $note);
 
       // Dispatch Fraud Event with inserting event.
-      $this->eventDispatcher->dispatch(FraudEvents::FRAUD_COUNT_INSERT, $event);
+      $this->eventDispatcher->dispatch(FraudEvents::FRAUD_SCORE_INSERT, $event);
     }
 
     // Calculating complete fraud score for the order.
