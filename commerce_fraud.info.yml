@@ -1,7 +1,7 @@
 name: Commerce Fraud
 type: module
 description: 'Detects potentially fraudulent orders'
-core: '8.x'
+core_version_requirement: ^8.8 || ^9
 package: Commerce
 configure: entity.rules.collection
 dependencies:

@@ -1,0 +1,16 @@
+commerce_fraud.settings:
+  type: config_entity
+  label: Settings
+  mapping:
+    commerce_fraud_checklist_cap:
+      type: integer
+      label: 'Checklist cap'
+    commerce_fraud_blocklist_cap:
+      type: integer
+      label: 'Blocklist cap'
+    stop_order:
+      type: boolean
+      label: 'Activate this to stop the blocklisted orders from completeing checkout'
+    send_email:
+      type: string
+      label: 'Email'
