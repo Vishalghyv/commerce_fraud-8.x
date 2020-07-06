@@ -37,7 +37,6 @@ class LastMinuteFraudRule extends FraudRuleBase {
   public function __construct(array $configuration, $plugin_id, $plugin_definition) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->database = \Drupal::database();
-
   }
 
   /**
@@ -107,7 +106,7 @@ class LastMinuteFraudRule extends FraudRuleBase {
       ->fields('o', ['order_id'])
       ->condition('uid', $customer_id, '=')
       ->condition('state', ['completed'], 'IN')
-      ->condition('placed', $this->timestampFromMinutes($this->configuration['last_minute']), '>=');
+      ->condition('completed', $this->timestampFromMinutes($this->configuration['last_minute']), '>=');
 
     return !empty($query->execute()->fetchAssoc());
   }
