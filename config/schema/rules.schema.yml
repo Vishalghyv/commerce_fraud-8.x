@@ -8,17 +8,15 @@ commerce_fraud.rules.*:
     label:
       type: label
       label: 'Label'
-    weight:
-      type: integer
-      label: 'Weight'
     plugin:
       type: string
       label: 'Plugin'
     configuration:
       type: commerce_fraud.rules.plugin.[%parent.plugin]
-    counter:
+    score:
       type: integer
-      label: 'Counter'
+      label: 'Score'
+
 commerce_fraud.rules.plugin.*:
   type: commerce_fraud_rules_configuration
 

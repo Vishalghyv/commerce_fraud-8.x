@@ -13,40 +13,22 @@ use Drupal\Core\Entity\EntityWithPluginCollectionInterface;
 interface RulesInterface extends ConfigEntityInterface, EntityWithPluginCollectionInterface {
 
   /**
-   * Gets the rule weight.
+   * Gets the rule score.
    *
    * @return string
-   *   The rule weight.
+   *   The rule score.
    */
-  public function getWeight();
+  public function getScore();
 
   /**
-   * Sets the rule weight.
+   * Sets the rule score.
    *
-   * @param int $weight
-   *   The rule weight.
+   * @param int $score
+   *   The rule score.
    *
    * @return $this
    */
-  public function setWeight($weight);
-
-  /**
-   * Gets the rule counter.
-   *
-   * @return string
-   *   The rule counter.
-   */
-  public function getCounter();
-
-  /**
-   * Sets the rule counter.
-   *
-   * @param int $counter
-   *   The rule counter.
-   *
-   * @return $this
-   */
-  public function setCounter($counter);
+  public function setScore($score);
 
   /**
    * Gets the rule plugin.

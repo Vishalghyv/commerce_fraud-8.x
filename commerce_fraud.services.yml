@@ -4,8 +4,8 @@ services:
     arguments: ['@event_dispatcher', '@messenger', '@database']
     tags:
       - { name: event_subscriber }
-  commerce_fraud.fraud_count_subscriber:
-    class: Drupal\commerce_fraud\EventSubscriber\FraudCountUpdatedSubscriber
+  commerce_fraud.fraud_score_subscriber:
+    class: Drupal\commerce_fraud\EventSubscriber\FraudScoreUpdatedSubscriber
     arguments: ['@database']
     tags:
       - {name: event_subscriber}

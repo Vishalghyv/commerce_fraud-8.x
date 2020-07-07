@@ -10,7 +10,7 @@ use Drupal\Core\Database\Connection;
  * Event subscriber, that acts on the place transition of commerce order
  * entities, in order to generate and set an fraud score.
  */
-class FraudCountUpdatedSubscriber implements EventSubscriberInterface {
+class FraudScoreUpdatedSubscriber implements EventSubscriberInterface {
 
   /**
    * The database connection.
@@ -20,7 +20,7 @@ class FraudCountUpdatedSubscriber implements EventSubscriberInterface {
   protected $connection;
 
   /**
-   * Constructs a new FraudCountSubscriber object.
+   * Constructs a new FraudscoreSubscriber object.
    *
    * @param \Drupal\Core\Database\Connection $connection
    *   The database connection to be used.
@@ -43,8 +43,8 @@ class FraudCountUpdatedSubscriber implements EventSubscriberInterface {
    */
   public static function getSubscribedEvents() {
     $events = [
-      'commerce_fraud.fraud_count_insert' => ['addFraudCount'],
-      'commerce_fraud.fraud_count_update' => ['changeFraudCount'],
+      'commerce_fraud.fraud_SCORE_insert' => ['addFraudscore'],
+      'commerce_fraud.fraud_SCORE_update' => ['changeFraudscore'],
     ];
     return $events;
   }
@@ -52,10 +52,10 @@ class FraudCountUpdatedSubscriber implements EventSubscriberInterface {
   /**
    * {@inheritdoc}
    */
-  public function addFraudCount(FraudEvent $event) {
+  public function addFraudScore(FraudEvent $event) {
 
     $fields = [
-      'fraud_score' => $event->getCount(),
+      'fraud_score' => $event->getScore(),
       'order_id' => $event->getOrderId(),
       'note' => $event->getNote(),
     ];
@@ -68,10 +68,10 @@ class FraudCountUpdatedSubscriber implements EventSubscriberInterface {
   /**
    * {@inheritdoc}
    */
-  public function changeFraudCount(FraudEvent $event) {
+  public function changeFraudScore(FraudEvent $event) {
 
     $fields = [
-      'fraud_score' => $event->getCount(),
+      'fraud_score' => $event->getScore(),
       'order_id' => $event->getOrderId(),
       'note' => $event->getNote(),
     ];

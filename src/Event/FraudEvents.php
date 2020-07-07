@@ -15,8 +15,8 @@ final class FraudEvents {
    * @see \Drupal\commerce_fraud\Event\FraudEvent
    * @var string
    * .*/
-  const FRAUD_COUNT_INSERT = 'commerce_fraud.fraud_count_insert';
+  const FRAUD_SCORE_INSERT = 'commerce_fraud.fraud_score_insert';
 
-  const FRAUD_COUNT_UPDATED = 'commerce_fraud.fraud_count_updated';
+  const FRAUD_SCORE_UPDATED = 'commerce_fraud.fraud_score_updated';
 
 }

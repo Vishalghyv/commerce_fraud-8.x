@@ -115,9 +115,9 @@ class RulesForm extends EntityForm {
       '#plugin_id' => $plugin,
       '#default_value' => $plugin_configuration,
     ];
-    $form['counter'] = [
+    $form['score'] = [
       '#type' => 'number',
-      '#title' => $this->t('Counter'),
+      '#title' => $this->t('Score'),
       '#default_value' => 5,
       '#required' => TRUE,
     ];
