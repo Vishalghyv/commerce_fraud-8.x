@@ -5,15 +5,16 @@ namespace Drupal\Tests\commerce_fraud\Kernel\Plugin\Commerce\FraudRule;
 use Drupal\commerce_order\Entity\Order;
 use Drupal\commerce_fraud\Entity\Rules;
 use Drupal\Tests\commerce_order\Kernel\OrderKernelTestBase;
-use Drupal\user\Entity\User;
+use Drupal\commerce_order\Entity\OrderItem;
+use Drupal\commerce_price\Price;
 
 /**
  * Tests actions source plugin.
  *
- * @coversDefaultClass \Drupal\commerce_fraud\Plugin\Commerce\FraudRule\AnonymousUserFraudRule
+ * @coversDefaultClass \Drupal\commerce_fraud\Plugin\Commerce\FraudRule\TotalQuantityFraudRule
  * @group commerce
  */
-class AnonymousUserFraudRuleTest extends OrderKernelTestBase {
+class TotalQuantityFraudRuleTest extends OrderKernelTestBase {
 
   /**
    * The test order.
@@ -61,9 +62,12 @@ class AnonymousUserFraudRuleTest extends OrderKernelTestBase {
 
     $this->rule = Rules::create([
       'id' => 'example',
-      'label' => 'ANONYMOUS',
+      'label' => 'Total Quantity',
       'status' => TRUE,
-      'plugin' => 'anonymous_user',
+      'plugin' => 'total_quantity',
+      'configuration' => [
+        'buy_quantity' => 7,
+      ],
       'counter' => 9,
     ]);
 
@@ -76,6 +80,14 @@ class AnonymousUserFraudRuleTest extends OrderKernelTestBase {
    * @covers ::apply
    */
   public function testNotApplicableRule() {
+    $order_item = OrderItem::create([
+      'type' => 'default',
+      'quantity' => 2,
+      'unit_price' => new Price('5.00', 'USD'),
+    ]);
+    $order_item->save();
+    $this->order->addItem($order_item);
+    $this->order->save();
     $this->assertEquals(FALSE, $this->rule->getPlugin()->apply($this->order));
   }
 
@@ -85,7 +97,14 @@ class AnonymousUserFraudRuleTest extends OrderKernelTestBase {
    * @covers ::apply
    */
   public function testApplicableRule() {
-    $this->order->setCustomer(User::getAnonymousUser());
+    $order_item = OrderItem::create([
+      'type' => 'default',
+      'quantity' => 8,
+      'unit_price' => new Price('12.00', 'USD'),
+    ]);
+    $order_item->save();
+    $this->order->addItem($order_item);
+    $this->order->save();
     $this->assertEquals(TRUE, $this->rule->getPlugin()->apply($this->order));
   }
 

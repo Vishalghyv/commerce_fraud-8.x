@@ -121,7 +121,7 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
     $updated_fraud_score = $this->getFraudScore($order->id());
 
     // Compare order fraud score with block list cap set in settings.
-    if ($updated_fraud_score <= \Drupal::state()->get('commerce_fraud_blocklist_cap', 10)) {
+    if ($updated_fraud_score <= \Drupal::state()->get('commerce_fraud_blocklist_cap', 20)) {
       return;
     }
 
