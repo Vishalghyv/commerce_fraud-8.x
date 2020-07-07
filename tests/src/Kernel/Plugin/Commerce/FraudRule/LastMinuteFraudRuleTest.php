@@ -10,10 +10,10 @@ use Drupal\user\Entity\User;
 /**
  * Tests actions source plugin.
  *
- * @coversDefaultClass \Drupal\commerce_fraud\Plugin\Commerce\FraudRule\AnonymousUserFraudRule
+ * @coversDefaultClass \Drupal\commerce_fraud\Plugin\Commerce\FraudRule\LastMinuteFraudRule
  * @group commerce
  */
-class AnonymousUserFraudRuleTest extends OrderKernelTestBase {
+class LastMinuteFraudRuleTest extends OrderKernelTestBase {
 
   /**
    * The test order.
@@ -28,6 +28,13 @@ class AnonymousUserFraudRuleTest extends OrderKernelTestBase {
    * @var \Drupal\commerce_fraud\Entity\RulesInterface
    */
   protected $rule;
+
+  /**
+   * A simple user to create order.
+   *
+   * @var \Drupal\user\UserInterface
+   */
+  protected $user;
 
   /**
    * Modules to enable.
@@ -48,22 +55,39 @@ class AnonymousUserFraudRuleTest extends OrderKernelTestBase {
     $this->installConfig(['commerce_fraud']);
     $this->installSchema('commerce_fraud', ['commerce_fraud_fraud_score']);
 
+    $user = $this->createUser();
+    $this->user = $this->reloadEntity($user);
+
     $this->order = Order::create([
       'type' => 'default',
       'state' => 'completed',
       'mail' => 'test@example.com',
       'ip_address' => '127.0.0.1',
       'order_number' => '6',
-      'uid' => $this->createUser(),
+      'uid' => $this->user,
+      'store_id' => $this->store,
+      'order_items' => [],
+    ]);
+
+    $this->new_order = Order::create([
+      'type' => 'default',
+      'state' => 'draft',
+      'mail' => 'test@example.com',
+      'ip_address' => '127.0.0.1',
+      'order_number' => '6',
+      'uid' => $this->user,
       'store_id' => $this->store,
       'order_items' => [],
     ]);
 
     $this->rule = Rules::create([
       'id' => 'example',
-      'label' => 'ANONYMOUS',
+      'label' => 'Last Minute',
       'status' => TRUE,
-      'plugin' => 'anonymous_user',
+      'plugin' => 'last_minute',
+      'configuration' => [
+        'last_minute' => 8,
+      ],
       'counter' => 9,
     ]);
 
@@ -76,7 +100,10 @@ class AnonymousUserFraudRuleTest extends OrderKernelTestBase {
    * @covers ::apply
    */
   public function testNotApplicableRule() {
-    $this->assertEquals(FALSE, $this->rule->getPlugin()->apply($this->order));
+    $ten_minutes_ago = \Drupal::time()->getRequestTime() - (60 * 10);
+    $this->order->setCompletedTime($ten_minutes_ago);
+    $this->order->save();
+    $this->assertEquals(FALSE, $this->rule->getPlugin()->apply($this->new_order));
   }
 
   /**
@@ -85,8 +112,10 @@ class AnonymousUserFraudRuleTest extends OrderKernelTestBase {
    * @covers ::apply
    */
   public function testApplicableRule() {
-    $this->order->setCustomer(User::getAnonymousUser());
-    $this->assertEquals(TRUE, $this->rule->getPlugin()->apply($this->order));
+    $four_minutes_ago = \Drupal::time()->getRequestTime() - (60 * 4);
+    $this->order->setCompletedTime($four_minutes_ago);
+    $this->order->save();
+    $this->assertEquals(TRUE, $this->rule->getPlugin()->apply($this->new_order));
   }
 
 }

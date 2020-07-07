@@ -41,9 +41,8 @@ class PoBoxFraudRule extends FraudRuleBase {
    */
   public function apply(OrderInterface $order) {
 
-    $order_profile = $order->billing_profile->entity->address->getValue();
-
-    return $this->containsPoBox($order_profile[0]['address_line1']) || $this->containsPoBox($order_profile[0]['address_line2']);
+    $order_address = $order->getBillingProfile()->get('address');
+    return $this->containsPoBox($order_address->address_line1) || $this->containsPoBox($order_address->address_line2);
   }
 
   /**

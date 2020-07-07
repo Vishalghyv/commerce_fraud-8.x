@@ -3,6 +3,7 @@
 namespace Drupal\commerce_fraud\Plugin\Commerce\FraudRule;
 
 use Drupal\Core\Form\FormStateInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\commerce_order\Entity\OrderInterface;
 
 /**
@@ -24,7 +25,7 @@ class CheckUserIpFraudRule extends FraudRuleBase {
   protected $database;
 
   /**
-   * Constructs a new Check User Ip object.
+   * Constructs a new Last Minute object.
    *
    * @param array $configuration
    *   A configuration array containing information about the plugin instance.
@@ -36,7 +37,6 @@ class CheckUserIpFraudRule extends FraudRuleBase {
   public function __construct(array $configuration, $plugin_id, $plugin_definition) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->database = \Drupal::database();
-
   }
 
   /**
@@ -66,10 +66,10 @@ class CheckUserIpFraudRule extends FraudRuleBase {
   public function apply(OrderInterface $order) {
     $customer_ip = $order->getIpAddress();
 
-    $orders_count = db_select('commerce_order', 'o')
-      ->fields('o', ['hostname'])
+    $orders_count = $this->database->select('commerce_order', 'o')
+      ->fields('o', ['ip_address'])
       ->condition('uid', $order->getCustomerId(), '=')
-      ->condition('hostname', [$customer_ip], 'NOT IN')
+      ->condition('ip_address', [$customer_ip], 'NOT IN')
       ->distinct()
       ->countQuery()
       ->execute()
