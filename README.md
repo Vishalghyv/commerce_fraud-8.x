@@ -12,6 +12,8 @@ FEATURES
   - Reset operation for commerce fraud to reset fraud score
   - Stopping fraululent orders from completing checkout
   - Sending email about the fraduluent orders
+  
+<img width="400" height="250" src="rules.jpg" alt="Rules">
 
 This module provides:
 
@@ -82,6 +84,7 @@ The module has commerce fraud settings in Commerce configuration.
     
     This is the email used to send detail about the fraudulent orders
 
+<img width="400" height="250" src="config.jpg" alt="Config">
 
 TROUBLESHOOTING
 ---------------
