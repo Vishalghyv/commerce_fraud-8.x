@@ -13,7 +13,7 @@ FEATURES
   - Stopping fraululent orders from completing checkout
   - Sending email about the fraduluent orders
   
-<img width="700" height="300" src="rules.jpg" alt="Rules">
+<img width="750" height="350" src="rules.jpg" alt="Rules">
 
 This module provides:
 
@@ -84,7 +84,7 @@ The module has commerce fraud settings in Commerce configuration.
     
     This is the email used to send detail about the fraudulent orders
 
-<img width="700" height="300" src="config.jpg" alt="Config">
+<img width="750" height="350" src="config.jpg" alt="Config">
 
 TROUBLESHOOTING
 ---------------
