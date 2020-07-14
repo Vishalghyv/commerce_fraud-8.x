@@ -44,3 +44,6 @@ commerce_fraud_rules_configuration:
     product_conditions:
       type: commerce_condition_configuration
       label: 'Product Conditions'
+    fraudulent_orders:
+      type: integer
+      label: 'Fraudulent Orders'
