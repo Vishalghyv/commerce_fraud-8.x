@@ -47,3 +47,42 @@ commerce_fraud_rules_configuration:
     fraudulent_orders:
       type: integer
       label: 'Fraudulent Orders'
+    user_id:
+      type: integer
+      label: 'User Id'
+    user_name:
+      type: string
+      label: 'User Name'
+    user_email:
+      type: string
+      label: 'User Email'
+    user_field:
+      type: string
+      label: 'User Field'
+    order_id:
+      type: integer
+      label: 'Order Id'
+    order_country_code:
+      type: string
+      label: 'Order Country Code'
+    order_first_name:
+      type: string
+      label: 'Order First Name'
+    order_company_name:
+      type: string
+      label: 'Order Company Name'
+    order_street_address:
+      type: string
+      label: 'Order Street Address'
+    order_administrative_area:
+      type: string
+      label: 'Order Administrative Area'
+    order_locality:
+      type: string
+      label: 'Order Locality'
+    order_area_code:
+      type: integer
+      label: 'Order Area Code'
+    order_field:
+      type: string
+      label: 'Order Field'
