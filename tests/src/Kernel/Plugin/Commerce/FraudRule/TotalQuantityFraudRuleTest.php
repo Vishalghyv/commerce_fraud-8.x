@@ -9,7 +9,7 @@ use Drupal\commerce_order\Entity\OrderItem;
 use Drupal\commerce_price\Price;
 
 /**
- * Tests actions source plugin.
+ * Tests commerce fraud rule plugin.
  *
  * @coversDefaultClass \Drupal\commerce_fraud\Plugin\Commerce\FraudRule\TotalQuantityFraudRule
  * @group commerce

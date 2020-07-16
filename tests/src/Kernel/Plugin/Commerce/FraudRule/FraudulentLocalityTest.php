@@ -9,7 +9,7 @@ use Drupal\profile\Entity\Profile;
 use Drupal\user\Entity\User;
 
 /**
- * Tests actions source plugin.
+ * Tests commerce fraud rule plugin.
  *
  * @coversDefaultClass \Drupal\commerce_fraud\Plugin\Commerce\FraudRule\FraudulentLocality
  * @group commerce

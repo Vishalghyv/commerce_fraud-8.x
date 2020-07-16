@@ -8,7 +8,7 @@ use Drupal\Tests\commerce_order\Kernel\OrderKernelTestBase;
 use Drupal\profile\Entity\Profile;
 
 /**
- * Tests actions source plugin.
+ * Tests commerce fraud rule plugin.
  *
  * @coversDefaultClass \Drupal\commerce_fraud\Plugin\Commerce\FraudRule\PoBoxFraudRule
  * @group commerce

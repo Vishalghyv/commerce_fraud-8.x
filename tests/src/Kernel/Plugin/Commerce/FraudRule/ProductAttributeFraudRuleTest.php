@@ -13,7 +13,7 @@ use Drupal\commerce_fraud\Entity\Rules;
 use Drupal\Tests\commerce_order\Kernel\OrderKernelTestBase;
 
 /**
- * Tests actions source plugin.
+ * Tests commerce fraud rule plugin.
  *
  * @coversDefaultClass \Drupal\commerce_fraud\Plugin\Commerce\FraudRule\ProductAttributeFraudRule
  * @group commerce
