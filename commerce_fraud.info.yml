@@ -11,3 +11,4 @@ dependencies:
   - views
   - commerce:commerce_order
   - drupal:options
+  - key
