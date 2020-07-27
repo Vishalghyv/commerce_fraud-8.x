@@ -16,6 +16,32 @@ class RulesListBuilder extends EntityListBuilder {
   /**
    * {@inheritdoc}
    */
+  public function load() {
+
+    $entities = [
+      'enabled' => [],
+      'disabled' => [],
+    ];
+
+    // Sort entities into enabled and disabled.
+    foreach (parent::load() as $entity) {
+
+      if ($entity->get('status')) {
+        $entities['enabled'][] = $entity;
+      }
+      else {
+        $entities['disabled'][] = $entity;
+      }
+
+    }
+
+    return $entities;
+  }
+
+
+  /**
+   * {@inheritdoc}
+   */
   public function buildHeader() {
     $header['id'] = $this->t('Rules ID');
     $header['name'] = $this->t('Name');
@@ -39,5 +65,48 @@ class RulesListBuilder extends EntityListBuilder {
     $row['counter'] = $entity->getCounter();
     return $row + parent::buildRow($entity);
   }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function render() {
+
+    // Set up the headers and tables.
+    $list = [
+      'enabled' => [
+        'heading' => [
+          '#markup' => '<h2>' . $this->t('Enabled') . '</h2>',
+        ],
+        'table' => [
+          '#type' => 'table',
+          '#empty' => $this->t('There are no enabled rules.'),
+        ],
+      ],
+      'disabled' => [
+        'heading' => [
+          '#markup' => '<h2>' . $this->t('Disabled') . '</h2>',
+        ],
+        'table' => [
+          '#type' => 'table',
+          '#empty' => $this->t('There are no disabled rules.'),
+        ],
+      ],
+    ];
+
+    $entities = $this->load();
+
+    foreach (['enabled', 'disabled'] as $status) {
+      $list[$status]['table'] += [
+        '#header' => $this->buildHeader(),
+      ];
+
+      foreach ($entities[$status] as $entity) {
+
+        $list[$status]['table']['#rows'][$entity->id()] = $this->buildRow($entity);
+      }
+    }
+    return $list;
+  }
+
 
 }

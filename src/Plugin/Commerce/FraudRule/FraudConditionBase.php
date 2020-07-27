@@ -15,7 +15,7 @@ abstract class FraudConditionBase extends FraudRuleBase implements FraudConditio
    */
   public function defaultConfiguration() {
     return [
-      'conditions' => [],
+      'product_conditions' => [],
     ] + parent::defaultConfiguration();
   }
 
@@ -25,12 +25,12 @@ abstract class FraudConditionBase extends FraudRuleBase implements FraudConditio
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildConfigurationForm($form, $form_state);
 
-    $form['conditions'] = [
+    $form['product']['product_conditions'] = [
       '#type' => 'commerce_conditions',
       '#title' => $this->t('Applies to'),
       '#parent_entity_type' => 'rules',
       '#entity_types' => ['commerce_order_item'],
-      '#default_value' => $this->configuration['conditions'],
+      '#default_value' => $this->configuration['product_conditions'],
     ];
 
     return $form;
@@ -45,7 +45,7 @@ abstract class FraudConditionBase extends FraudRuleBase implements FraudConditio
     if (!$form_state->getErrors()) {
       $values = $form_state->getValue($form['#parents']);
       $this->configuration = [];
-      $this->configuration['conditions'] = $values['conditions'];
+      $this->configuration['product_conditions'] = $values['product_conditions'];
     }
   }
 
@@ -55,7 +55,7 @@ abstract class FraudConditionBase extends FraudRuleBase implements FraudConditio
   public function getConditions() {
     $plugin_manager = \Drupal::service('plugin.manager.commerce_condition');
     $conditions = [];
-    foreach ($this->configuration['conditions'] as $condition) {
+    foreach ($this->configuration['product_conditions'] as $condition) {
       $conditions[] = $plugin_manager->createInstance($condition['plugin'], $condition['configuration']);
     }
     return $conditions;
@@ -65,10 +65,10 @@ abstract class FraudConditionBase extends FraudRuleBase implements FraudConditio
    * {@inheritdoc}
    */
   public function setConditions(array $conditions) {
-    $this->configuration['conditions'] = [];
+    $this->configuration['product_conditions'] = [];
     foreach ($conditions as $condition) {
       if ($condition instanceof ConditionInterface) {
-        $this->configuration['conditions'][] = [
+        $this->configuration['product_conditions'][] = [
           'plugin' => $condition->getPluginId(),
           'configuration' => $condition->getConfiguration(),
         ];

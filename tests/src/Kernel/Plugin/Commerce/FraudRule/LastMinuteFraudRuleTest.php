@@ -5,7 +5,6 @@ namespace Drupal\Tests\commerce_fraud\Kernel\Plugin\Commerce\FraudRule;
 use Drupal\commerce_order\Entity\Order;
 use Drupal\commerce_fraud\Entity\Rules;
 use Drupal\Tests\commerce_order\Kernel\OrderKernelTestBase;
-use Drupal\user\Entity\User;
 
 /**
  * Tests commerce fraud rule plugin.
@@ -95,23 +94,18 @@ class LastMinuteFraudRuleTest extends OrderKernelTestBase {
   }
 
   /**
-   * Tests the non-applicable use case.
+   * Tests last minute rule.
    *
    * @covers ::apply
    */
-  public function testNotApplicableRule() {
+  public function testLastMinuteRule() {
+    // non-applicable use case.
     $ten_minutes_ago = \Drupal::time()->getRequestTime() - (60 * 10);
     $this->order->setCompletedTime($ten_minutes_ago);
     $this->order->save();
     $this->assertEquals(FALSE, $this->rule->getPlugin()->apply($this->new_order));
-  }
 
-  /**
-   * Tests the applicable use case.
-   *
-   * @covers ::apply
-   */
-  public function testApplicableRule() {
+    // Applicable use case.
     $four_minutes_ago = \Drupal::time()->getRequestTime() - (60 * 4);
     $this->order->setCompletedTime($four_minutes_ago);
     $this->order->save();

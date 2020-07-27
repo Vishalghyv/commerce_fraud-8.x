@@ -71,20 +71,15 @@ class AnonymousUserFraudRuleTest extends OrderKernelTestBase {
   }
 
   /**
-   * Tests the non-applicable use case.
+   * Tests Anonymous user rule.
    *
    * @covers ::apply
    */
-  public function testNotApplicableRule() {
+  public function testAnonymousRule() {
+    // non-applicable use case.
     $this->assertEquals(FALSE, $this->rule->getPlugin()->apply($this->order));
-  }
 
-  /**
-   * Tests the applicable use case.
-   *
-   * @covers ::apply
-   */
-  public function testApplicableRule() {
+    // Applicable use case.
     $this->order->setCustomer(User::getAnonymousUser());
     $this->assertEquals(TRUE, $this->rule->getPlugin()->apply($this->order));
   }

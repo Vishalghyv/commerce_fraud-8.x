@@ -1,6 +1,4 @@
-<?php
-
-namespace Drupal\Tests\commerce_fraud\Functional;
+w
 
 use Drupal\commerce_order\Entity\Order;
 use Drupal\commerce_fraud\Entity\Rules;

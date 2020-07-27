@@ -5,7 +5,6 @@ namespace Drupal\Tests\commerce_fraud\Kernel\Plugin\Commerce\FraudRule;
 use Drupal\commerce_order\Entity\Order;
 use Drupal\commerce_fraud\Entity\Rules;
 use Drupal\Tests\commerce_order\Kernel\OrderKernelTestBase;
-use Drupal\user\Entity\User;
 
 /**
  * Tests commerce fraud rule plugin.
@@ -85,20 +84,15 @@ class CheckUserIpFraudRuleTest extends OrderKernelTestBase {
   }
 
   /**
-   * Tests the non-applicable use case.
+   * Tests Check User Ip rule.
    *
    * @covers ::apply
    */
-  public function testNotApplicableRule() {
+  public function testCheckUserIpRule() {
+    // non-applicable use case.
     $this->assertEquals(FALSE, $this->rule->getPlugin()->apply($this->new_order));
-  }
 
-  /**
-   * Tests the applicable use case.
-   *
-   * @covers ::apply
-   */
-  public function testApplicableRule() {
+    // Applicable use case.
     $ip_address = '127.0.0.2';
     $this->order->setIpAddress($ip_address);
     $this->order->save();

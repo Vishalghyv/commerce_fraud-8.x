@@ -75,11 +75,12 @@ class TotalQuantityFraudRuleTest extends OrderKernelTestBase {
   }
 
   /**
-   * Tests the non-applicable use case.
+   * Tests Quantity rule.
    *
    * @covers ::apply
    */
-  public function testNotApplicableRule() {
+  public function testQuantityRule() {
+    // non-applicable use case.
     $order_item = OrderItem::create([
       'type' => 'default',
       'quantity' => 2,
@@ -89,14 +90,10 @@ class TotalQuantityFraudRuleTest extends OrderKernelTestBase {
     $this->order->addItem($order_item);
     $this->order->save();
     $this->assertEquals(FALSE, $this->rule->getPlugin()->apply($this->order));
-  }
 
-  /**
-   * Tests the applicable use case.
-   *
-   * @covers ::apply
-   */
-  public function testApplicableRule() {
+    // Applicable use case.
+    $this->order->removeItem($order_item);
+
     $order_item = OrderItem::create([
       'type' => 'default',
       'quantity' => 8,

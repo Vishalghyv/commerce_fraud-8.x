@@ -3,10 +3,12 @@
 namespace Drupal\commerce_fraud\Plugin\Commerce\FraudRule;
 
 use Drupal\commerce\ConditionGroup;
+use Drupal\commerce\Plugin\Commerce\Condition\ConditionInterface;
 use Drupal\commerce\ConditionManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\commerce_order\Entity\OrderInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+
 
 /**
  * Provides the infinite order number generator.
@@ -99,7 +101,6 @@ class ProductAttributeFraudRule extends FraudRuleBase {
 
     if (!$form_state->getErrors()) {
       $values = $form_state->getValue($form['#parents']);
-
       $this->configuration['product_conditions'] = $values['product']['conditions'];
     }
   }
@@ -158,5 +159,6 @@ class ProductAttributeFraudRule extends FraudRuleBase {
 
     return FALSE;
   }
+
 
 }

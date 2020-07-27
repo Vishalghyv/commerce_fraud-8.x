@@ -3,7 +3,7 @@
 namespace Drupal\Tests\commerce_fraud\Kernel\EventSubscriber;
 
 use Drupal\commerce_order\Entity\Order;
-use Drupal\commerce_order_number\OrderNumberFormatterInterface;
+use Drupal\commerce_log\Entity\Log;
 use Drupal\Tests\commerce\Kernel\CommerceKernelTestBase;
 use Drupal\user\Entity\User;
 use Drupal\commerce_fraud\Entity\Rules;
@@ -25,8 +25,8 @@ class CommerceFraudSubscriberTest extends OrderKernelTestBase {
    * @var array
    */
   public static $modules = [
-    'commerce_log',
     'commerce_fraud',
+    'commerce_log',
   ];
 
   /**
