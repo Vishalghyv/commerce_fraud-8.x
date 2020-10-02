@@ -14,6 +14,7 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Mail\MailManagerInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\commerce_fraud\Entity\SuspectedOrder;
+use Drupal\commerce_payment\Event\PaymentEvent;
 
 /**
  * Event subscriber, that acts on the place transition of commerce order.
@@ -137,8 +138,57 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
   public static function getSubscribedEvents() {
     $events = [
       'commerce_order.place.pre_transition' => ['setFraudScore'],
+      'commerce_payment.commerce_payment.insert' => ['setPaymentScore'],
     ];
     return $events;
+  }
+
+  /**
+   * Sets Fraud Score based upon payment AVS response codes.
+   *
+   * @param \Drupal\commerce_payment\Event\PaymentEvent $event
+   *   The transition event.
+   */
+  public function setPaymentScore(PaymentEvent $event) {
+
+    $payment = $event->getPayment();
+
+    $order = $payment->getOrder();
+
+    $this->suspectedOrder = $this->suspectedOrderStorage->loadByProperties(['order_id' => $order->id()]);
+    $this->suspectedOrder = reset($this->suspectedOrder);
+
+    if (empty($this->suspectedOrder)) {
+      $this->suspectedOrder = SuspectedOrder::create([
+        'order_id' => $order->id(),
+        'rules' => [],
+      ]);
+    }
+    // Get rules.
+    $rules = $this->entityTypeManager->getStorage('rules')->loadMultiple();
+
+    // Apply rules to payment.
+    foreach ($rules as $rule) {
+      // Only payment rules to be checked.
+      if ($rule->getPlugin()->getLabel() != 'Compare order AVS code') {
+        continue;
+      }
+
+      if (!$rule->getPlugin()->applyPaymentRule($payment)) {
+        continue;
+      }
+
+      // Get the name set in the entity.
+      $rule_name = $rule->getPlugin()->getLabel();
+
+      // Add a log to order activity.
+      $this->logStorage->generate($order, 'fraud_rule_name', ['rule_name' => $rule_name])->save();
+
+      $this->suspectedOrder->addRule($rule);
+    }
+
+    $this->suspectedOrder->save();
+
   }
 
   /**
