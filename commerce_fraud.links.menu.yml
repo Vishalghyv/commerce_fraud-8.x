@@ -1,14 +1,26 @@
-commerce_fraud.settings:
+commerce_fraud.configuration:
   title: 'Commerce Fraud'
-  route_name: commerce_fraud.settings
+  route_name: commerce_fraud.configuration
   parent: commerce.configuration
+
+commerce_fraud.settings:
+  title: 'Commerce Fraud Configuration'
+  route_name: commerce_fraud.settings
+  parent: commerce_fraud.configuration
   description: 'Manage Commerce Fraud configuration.'
-  weight: 10
 
 # Rules menu items definition
 entity.rules.collection:
-  title: 'Rules list'
+  title: 'Fraud Rules'
   route_name: entity.rules.collection
-  description: 'List Rules entities'
-  parent: 'commerce.admin_commerce'
+  description: 'List fraud rules'
+  parent: 'commerce_fraud.configuration'
   weight: 9
+
+# Suspected order menu items definition
+entity.suspected_order.collection:
+  title: 'Suspected order list'
+  route_name: entity.suspected_order.collection
+  description: 'List Suspected order entities'
+  parent: 'commerce_fraud.configuration'
+  weight: 100

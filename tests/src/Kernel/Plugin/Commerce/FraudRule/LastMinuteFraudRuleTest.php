@@ -5,12 +5,12 @@ namespace Drupal\Tests\commerce_fraud\Kernel\Plugin\Commerce\FraudRule;
 use Drupal\commerce_order\Entity\Order;
 use Drupal\commerce_fraud\Entity\Rules;
 use Drupal\Tests\commerce_order\Kernel\OrderKernelTestBase;
-use Drupal\user\Entity\User;
 
 /**
- * Tests actions source plugin.
+ * Tests the commerce fraud rule plugin.
  *
  * @coversDefaultClass \Drupal\commerce_fraud\Plugin\Commerce\FraudRule\LastMinuteFraudRule
+ *
  * @group commerce
  */
 class LastMinuteFraudRuleTest extends OrderKernelTestBase {
@@ -37,9 +37,7 @@ class LastMinuteFraudRuleTest extends OrderKernelTestBase {
   protected $user;
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritDoc}
    */
   public static $modules = [
     'commerce_fraud',
@@ -48,7 +46,8 @@ class LastMinuteFraudRuleTest extends OrderKernelTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
+
     parent::setUp();
 
     $this->installEntitySchema('rules');
@@ -88,34 +87,32 @@ class LastMinuteFraudRuleTest extends OrderKernelTestBase {
       'configuration' => [
         'last_minute' => 8,
       ],
-      'counter' => 9,
+      'score' => 9,
     ]);
 
     $this->rule->save();
+
   }
 
   /**
-   * Tests the non-applicable use case.
+   * Tests last minute rule.
    *
    * @covers ::apply
    */
-  public function testNotApplicableRule() {
+  public function testLastMinuteRule() {
+
+    // non-applicable use case.
     $ten_minutes_ago = \Drupal::time()->getRequestTime() - (60 * 10);
     $this->order->setCompletedTime($ten_minutes_ago);
     $this->order->save();
     $this->assertEquals(FALSE, $this->rule->getPlugin()->apply($this->new_order));
-  }
 
-  /**
-   * Tests the applicable use case.
-   *
-   * @covers ::apply
-   */
-  public function testApplicableRule() {
+    // Applicable use case.
     $four_minutes_ago = \Drupal::time()->getRequestTime() - (60 * 4);
     $this->order->setCompletedTime($four_minutes_ago);
     $this->order->save();
     $this->assertEquals(TRUE, $this->rule->getPlugin()->apply($this->new_order));
+
   }
 
 }

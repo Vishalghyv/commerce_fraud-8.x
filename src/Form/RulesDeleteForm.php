@@ -7,7 +7,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
 
 /**
- * Builds the form to delete Default entity entities.
+ * Builds the form to delete Rules config entities.
  */
 class RulesDeleteForm extends EntityConfirmFormBase {
 

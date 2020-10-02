@@ -7,12 +7,11 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\commerce_order\Entity\OrderInterface;
 
 /**
- * Provides the fraud rule.
+ * Provides the total quantity fraud rule.
  *
  * @CommerceFraudRule(
  *   id = "total_quantity",
- *   label = @Translation("Compare Total Quantity with Given Quantity"),
- *   description = @Translation("Checks Order Total Quantity"),
+ *   label = @Translation("Compare total quantity with given quantity"),
  * )
  */
 class TotalQuantityFraudRule extends FraudRuleBase {

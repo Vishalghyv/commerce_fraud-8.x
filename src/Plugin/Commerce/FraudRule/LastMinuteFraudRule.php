@@ -7,12 +7,11 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\commerce_order\Entity\OrderInterface;
 
 /**
- * Provides the fraud rule.
+ * Provides the last minute fraud rule.
  *
  * @CommerceFraudRule(
  *   id = "last_minute",
- *   label = @Translation("Compare Last Minute with Given Minute"),
- *   description = @Translation("Checks Order Last Minute"),
+ *   label = @Translation("Compare Last minutes of order completion with given minutes"),
  * )
  */
 class LastMinuteFraudRule extends FraudRuleBase {
@@ -37,6 +36,7 @@ class LastMinuteFraudRule extends FraudRuleBase {
   public function __construct(array $configuration, $plugin_id, $plugin_definition) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->database = \Drupal::database();
+
   }
 
   /**

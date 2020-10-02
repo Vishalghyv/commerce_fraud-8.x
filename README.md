@@ -1,23 +1,24 @@
-# Commerce Fraud
+Commerce Fraud
+==============
 
-This module provides a framework to detect potentially fraudulent
-orders and provide steps to be taken.
+This module provides framework to detect potentially fraudulent
+orders and steps to be taken to stop fraudulent orders.
 
 FEATURES
-------------
+--------
 
-  - Rules Config entity with seven default rules to keep check on orders
-  - Classifing orders on the basis of fraud score calculated from rules
-  - Fruad Event to be invoked in order to change fraud score of an order
-  - Reset operation for commerce fraud to reset fraud score
-  - Stopping fraululent orders from completing checkout
-  - Sending email about the fraduluent orders
-  
-<img width="750" height="350" src="rules.jpg" alt="Rules">
+- Rules Config entity with seven default rules to keep check on orders
+- Classifying orders on the basis of fraud score calculated from rules
+- Suspected Order Content entity displays details about order that have applied fraudulent rules
+- Create an suspected order entity for orders and set their fraud score with custom available rules
+- Stopping fraudulent orders from completing checkout
+- Emails sent to administrators about the fraudulent orders
+
+![Rules](assets/rules.jpg)
 
 This module provides:
 
-- 1 Rules config entity
+- Rules config entity for creating rules with given conditions
 - 7 Rules conditions:
     - Checks if Order by Anonymous User
     - Checks Order User IP address
@@ -26,85 +27,88 @@ This module provides:
     - Checks Product Attribute
     - Checks Order Total Price
     - Checks Order Total Quantity
+- Suspected Order entity for details of order that were applicable to rules
 - 1 Fraud event:
-    - Increase the fraud count
-    - Decrease the fraud count
-    - Update the fraud count
-- Adds reset operation to commerce_order
+    - Increase the fraud score
+    - Decrease the fraud score
+    - Update the fraud score
 - Fraud rule logging category
 
-The Rules actions will increase the fraud score on the provided
-`commerce_order`. This counter is an integer that the "Reset the fraud
-count" action sets back to 0. The "Increase the fraud count" and
-"Decrease the fraud count" actions will increase or decrease this
-fraud count, by default by 1. (But this is customizable.)
+The Rules action will increase the fraud score any orders made. This fraud score represents the likelihood of an order being fraudulent.
+With this suspected order entity is created to store the information about the order.
+The "Increase the fraud score" and "Decrease the fraud score" actions will increase or decrease this fraud score, by the default 5 (But this is customizable).
 
 The "Fraud score changed" event is fired every time one of the actions
 is called.
 
-The limits used by the 3 conditions are configurable in
-/admin/commerce/config/commerce_fraud. By default, they are:
+The limits used by the 3 conditions are configurable in `/admin/commerce/config/commerce_fraud`. By default, they are:
 
-- An order is whitelisted if the fraud count is < 10
-- An order is blacklisted if the fraud count is >= 20
+- An order is whitelisted if the fraud score is < 10
 - An order is greylisted if it's between 10 and 20
+- An order is blacklisted if the fraud score is >= 20
 
 INSTALLATION
 ------------
 
- * Install as you would normally install a contributed Drupal module. Visit
-   https://www.drupal.org/node/1897420 for further information.
-   
+Install as you would normally install a contributed Drupal module. Visit https://www.drupal.org/node/1897420 for further information.
+
 REQUIREMENTS
 ------------
 
-  - action
-  - commerce
-  - entity
-  - views
-  - commerce:commerce_order
-  - drupal:options
+These modules are required for Commerce Fraud:
+
+ - action
+ - entity
+ - views
+ - options
+ - commerce
+ - commerce:commerce_order
 
 CONFIGURATION
 -------------
 
-The module has commerce fraud settings in Commerce configuration.
+Once you've installed the module, navigate to `/admin/commerce/rules`.
+This is where you can add new rules and modify existing ones.
+Rules are what orders will be checked against for fraudulent activity.
+You need to add at least one rule to utilize this module properly.
 
-* Things that can be configured:
+The module has some settings under the Commerce configuration (`/admin/commerce/config/commerce_fraud`).
 
-  - Checklist and Blocklist 
-  
-    These value caps are  used to classify orders
-    
-  - Stop order check box
+- Checklist and Blocklist
+    - These value caps are used to classify orders as genuine or fraudulent
 
-    This checks wether a fraduluent order be stoped from completing checkout or not
- 
-  - Email
-    
-    This is the email used to send detail about the fraudulent orders
+- Stop order check box
+    - This checks whether a fraudulent order should be stopped from completing checkout
 
-<img width="750" height="350" src="config.jpg" alt="Config">
+- Send email
+    - This is the email used to send details about fraudulent orders
+
+![Rules](assets/config.jpg)
 
 TROUBLESHOOTING
 ---------------
 
- * If the rule does not fire properly, check the following:
+If a rule does not work properly, clear the sites caches and check the following:
 
-  - Does order should fire the rule enabled?
-  
-  - Does the log the activity properly?
-   
-  - Check the commerce_fraud_fraud_score for the order detail
+- Is the rule enabled?
 
-  - Report the issue in issue queue with details of order and rule not working.
+- Is there activity showing in the site logs?
 
-This module provides some default rules that can be turned on to start
-keeping track of potentially fraudulent orders.
+- More details about the order can be found in the site suspected order list menu (/admin/commerce/config/suspected_order)
 
-Developed by [Acro Media Inc][0], Sponsored by [Skilld.fr][1] and also developed by [Commerce Guys][2].
+- Finally, if the problem persists create an issue with relevant details in the [issue queue](https://www.drupal.org/project/issues/commerce_fraud)
 
+Maintainers
+-----------
 
-  [0]: http://www.acromediainc.com
-  [1]: http://www.skilld.fr
-  [2]: https://commerceguys.com
+Current maintainers:
+
+- Shawn McCabe - [smccabe](https://www.drupal.org/u/smccabe)
+- Josh Miller - [joshmiller](https://www.drupal.org/u/joshmiller)
+- Derek Cresswell - [derekcresswell](https://www.drupal.org/u/derekcresswell)
+
+Developed by [Acro Media Inc][0], sponsored by [Skilld.fr][1] and also developed by [Commerce Guys][2].
+
+[0]: http://www.acromediainc.com
+[1]: http://www.skilld.fr
+[2]: https://commerceguys.com

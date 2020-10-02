@@ -43,11 +43,11 @@ use Drupal\Core\Config\Entity\ConfigEntityBase;
  *     "score",
  *   },
  *   links = {
- *     "canonical" = "/admin/commerce/rules/{rules}",
- *     "add-form" = "/admin/commerce/rules/add",
- *     "edit-form" = "/admin/commerce/rules/{rules}/edit",
- *     "delete-form" = "/admin/commerce/rules/{rules}/delete",
- *     "collection" = "/admin/commerce/rules",
+ *     "canonical" = "/admin/commerce/config/commerce_fraud/rules/{rules}",
+ *     "add-form" = "/admin/commerce/config/commerce_fraud/rules/add",
+ *     "edit-form" = "/admin/commerce/config/commerce_fraud/rules/{rules}/edit",
+ *     "delete-form" = "/admin/commerce/config/commerce_fraud/rules/{rules}/delete",
+ *     "collection" = "/admin/commerce/config/commerce_fraud/rules",
  *   },
  * )
  */
@@ -68,7 +68,7 @@ class Rules extends ConfigEntityBase implements RulesInterface {
   protected $label;
 
   /**
-   * The rule score.
+   * Rule score.
    *
    * @var int
    */

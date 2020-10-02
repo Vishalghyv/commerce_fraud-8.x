@@ -1,14 +1,9 @@
 services:
   commerce_fraud.commerce_fraud_subscriber:
     class: Drupal\commerce_fraud\EventSubscriber\CommerceFraudSubscriber
-    arguments: ['@event_dispatcher', '@messenger', '@database']
+    arguments: ['@entity_type.manager', '@event_dispatcher', '@messenger', '@database', '@config.factory', '@plugin.manager.mail', '@language_manager']
     tags:
       - { name: event_subscriber }
-  commerce_fraud.fraud_score_subscriber:
-    class: Drupal\commerce_fraud\EventSubscriber\FraudScoreUpdatedSubscriber
-    arguments: ['@database']
-    tags:
-      - {name: event_subscriber}
 
   plugin.manager.commerce_fraud_rule:
     class: Drupal\commerce_fraud\CommerceFraudManager

@@ -63,6 +63,8 @@ class RulesForm extends EntityForm {
     $form = parent::form($form, $form_state);
     /** @var \Drupal\commerce_fraud\Entity\RulesInterface $gateway */
     $gateway = $this->entity;
+
+    // Get the plugin labels.
     $plugins = array_column($this->pluginManager->getDefinitions(), 'label', 'id');
     asort($plugins);
 
@@ -72,9 +74,12 @@ class RulesForm extends EntityForm {
       $plugin = reset($plugin_ids);
       $gateway->setPluginId($plugin);
     }
+
     // The form state will have a plugin value if #ajax was used.
     $plugin = $form_state->getValue('plugin', $gateway->getPluginId());
-    // Pass the plugin configuration only if the plugin hasn't been changed via #ajax.
+
+    // Pass the plugin configuration only if the plugin hasn't been changed via
+    // #ajax.
     $plugin_configuration = $gateway->getPluginId() == $plugin ? $gateway->getPluginConfiguration() : [];
 
     $wrapper_id = Html::getUniqueId('rules-form');
@@ -97,6 +102,8 @@ class RulesForm extends EntityForm {
       ],
       '#disabled' => !$gateway->isNew(),
     ];
+
+    // Select for the plugin.
     $form['plugin'] = [
       '#type' => 'radios',
       '#title' => $this->t('Plugin'),
@@ -109,12 +116,16 @@ class RulesForm extends EntityForm {
         'wrapper' => $wrapper_id,
       ],
     ];
+
+    // Configuration from commerce fraud rule plugins.
     $form['configuration'] = [
       '#type' => 'commerce_plugin_configuration',
       '#plugin_type' => 'commerce_fraud_rule',
       '#plugin_id' => $plugin,
       '#default_value' => $plugin_configuration,
     ];
+
+    // Amount added to fraud score.
     $form['score'] = [
       '#type' => 'number',
       '#title' => $this->t('Score'),

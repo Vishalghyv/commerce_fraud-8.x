@@ -8,9 +8,10 @@ use Drupal\Tests\commerce_order\Kernel\OrderKernelTestBase;
 use Drupal\profile\Entity\Profile;
 
 /**
- * Tests actions source plugin.
+ * Tests the commerce fraud rule plugin.
  *
  * @coversDefaultClass \Drupal\commerce_fraud\Plugin\Commerce\FraudRule\PoBoxFraudRule
+ *
  * @group commerce
  */
 class PoBoxFraudRuleTest extends OrderKernelTestBase {
@@ -30,9 +31,7 @@ class PoBoxFraudRuleTest extends OrderKernelTestBase {
   protected $rule;
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritDoc}
    */
   public static $modules = [
     'commerce_fraud',
@@ -41,7 +40,8 @@ class PoBoxFraudRuleTest extends OrderKernelTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
+
     parent::setUp();
 
     $this->installEntitySchema('rules');
@@ -64,18 +64,20 @@ class PoBoxFraudRuleTest extends OrderKernelTestBase {
       'label' => 'PO Box',
       'status' => TRUE,
       'plugin' => 'po_box',
-      'counter' => 9,
+      'score' => 9,
     ]);
 
     $this->rule->save();
   }
 
   /**
-   * Tests the non-applicable use case.
+   * Tests Po Box rule.
    *
    * @covers ::apply
    */
-  public function testNotApplicableRule() {
+  public function testPoBoxRule() {
+
+    // non-applicable use case.
     $billing_profile = Profile::create([
       'type' => 'customer',
       'address' => [
@@ -90,18 +92,13 @@ class PoBoxFraudRuleTest extends OrderKernelTestBase {
       ],
     ]);
     $billing_profile->save();
+
     $billing_profile = $this->reloadEntity($billing_profile);
     $this->order->setBillingProfile($billing_profile);
     $this->order->save();
     $this->assertEquals(FALSE, $this->rule->getPlugin()->apply($this->order));
-  }
 
-  /**
-   * Tests the applicable use case.
-   *
-   * @covers ::apply
-   */
-  public function testApplicableRule() {
+    // Applicable use case.
     $billing_profile = Profile::create([
       'type' => 'customer',
       'address' => [
@@ -116,10 +113,12 @@ class PoBoxFraudRuleTest extends OrderKernelTestBase {
       ],
     ]);
     $billing_profile->save();
+
     $billing_profile = $this->reloadEntity($billing_profile);
     $this->order->setBillingProfile($billing_profile);
     $this->order->save();
     $this->assertEquals(TRUE, $this->rule->getPlugin()->apply($this->order));
+
   }
 
 }

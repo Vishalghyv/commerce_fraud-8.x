@@ -11,8 +11,7 @@ use Drupal\commerce_order\Entity\OrderInterface;
  *
  * @CommerceFraudRule(
  *   id = "check_user_ip",
- *   label = @Translation("Checks If user have completed orders form different Ip address"),
- *   description = @Translation("Checks Order User IP address"),
+ *   label = @Translation("Check If user has completed orders with different IP addresses"),
  * )
  */
 class CheckUserIpFraudRule extends FraudRuleBase {
@@ -25,7 +24,7 @@ class CheckUserIpFraudRule extends FraudRuleBase {
   protected $database;
 
   /**
-   * Constructs a new Last Minute object.
+   * Constructs a new Check User Ip object.
    *
    * @param array $configuration
    *   A configuration array containing information about the plugin instance.
@@ -37,6 +36,7 @@ class CheckUserIpFraudRule extends FraudRuleBase {
   public function __construct(array $configuration, $plugin_id, $plugin_definition) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->database = \Drupal::database();
+
   }
 
   /**

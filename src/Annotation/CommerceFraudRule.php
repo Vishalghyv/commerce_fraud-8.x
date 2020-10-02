@@ -5,7 +5,7 @@ namespace Drupal\commerce_fraud\Annotation;
 use Drupal\Component\Annotation\Plugin;
 
 /**
- * Defines the fraud generator plugin annotation object.
+ * Defines the fraud rule plugin annotation object.
  *
  * Plugin namespace: Plugin\Commerce\FraudRuleBase.
  *

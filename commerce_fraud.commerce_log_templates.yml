@@ -4,5 +4,5 @@ fraud_rule_name:
   template: "<p><b>{{ 'Rule'|t }} :</b> {{ rule_name }}</p>"
 order_fraud:
   category: commerce_order
-  label: 'Order fruad'
-  template: '<p>The order was fraudulent.</p>'
+  label: 'Order fraud'
+  template: '<p>This order was marked as fraudulent.</p>'

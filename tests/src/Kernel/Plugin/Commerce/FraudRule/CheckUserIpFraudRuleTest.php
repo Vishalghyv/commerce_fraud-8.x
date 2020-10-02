@@ -5,22 +5,29 @@ namespace Drupal\Tests\commerce_fraud\Kernel\Plugin\Commerce\FraudRule;
 use Drupal\commerce_order\Entity\Order;
 use Drupal\commerce_fraud\Entity\Rules;
 use Drupal\Tests\commerce_order\Kernel\OrderKernelTestBase;
-use Drupal\user\Entity\User;
 
 /**
- * Tests actions source plugin.
+ * Tests the commerce fraud rule plugin.
  *
  * @coversDefaultClass \Drupal\commerce_fraud\Plugin\Commerce\FraudRule\CheckUserIpFraudRule
+ *
  * @group commerce
  */
 class CheckUserIpFraudRuleTest extends OrderKernelTestBase {
 
   /**
-   * The test order.
+   * A test order.
    *
    * @var \Drupal\commerce_order\Entity\OrderInterface
    */
-  protected $order;
+  protected $orderOne;
+
+  /**
+   * A second test order.
+   *
+   * @var \Drupal\commerce_order\Entity\OrderInterface
+   */
+  protected $orderTwo;
 
   /**
    * The test rule.
@@ -30,9 +37,14 @@ class CheckUserIpFraudRuleTest extends OrderKernelTestBase {
   protected $rule;
 
   /**
-   * Modules to enable.
+   * A test user.
    *
-   * @var array
+   * @var \Drupal\user\UserInterface
+   */
+  protected $user;
+
+  /**
+   * {@inheritDoc}
    */
   public static $modules = [
     'commerce_fraud',
@@ -41,7 +53,8 @@ class CheckUserIpFraudRuleTest extends OrderKernelTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
+
     parent::setUp();
 
     $this->installEntitySchema('rules');
@@ -51,7 +64,7 @@ class CheckUserIpFraudRuleTest extends OrderKernelTestBase {
     $user = $this->createUser();
     $this->user = $this->reloadEntity($user);
 
-    $this->order = Order::create([
+    $this->orderOne = Order::create([
       'type' => 'default',
       'state' => 'completed',
       'mail' => 'test@example.com',
@@ -62,7 +75,7 @@ class CheckUserIpFraudRuleTest extends OrderKernelTestBase {
       'order_items' => [],
     ]);
 
-    $this->new_order = Order::create([
+    $this->orderTwo = Order::create([
       'type' => 'default',
       'state' => 'draft',
       'mail' => 'test@example.com',
@@ -78,31 +91,27 @@ class CheckUserIpFraudRuleTest extends OrderKernelTestBase {
       'label' => 'Check User IP',
       'status' => TRUE,
       'plugin' => 'check_user_ip',
-      'counter' => 9,
+      'score' => 9,
     ]);
 
     $this->rule->save();
+
   }
 
   /**
-   * Tests the non-applicable use case.
+   * Tests Check User IP rule.
    *
    * @covers ::apply
    */
-  public function testNotApplicableRule() {
-    $this->assertEquals(FALSE, $this->rule->getPlugin()->apply($this->new_order));
-  }
+  public function testCheckUserIpRule() {
+    // non-applicable use case.
+    $this->assertEquals(FALSE, $this->rule->getPlugin()->apply($this->orderTwo));
 
-  /**
-   * Tests the applicable use case.
-   *
-   * @covers ::apply
-   */
-  public function testApplicableRule() {
+    // Applicable use case.
     $ip_address = '127.0.0.2';
-    $this->order->setIpAddress($ip_address);
-    $this->order->save();
-    $this->assertEquals(TRUE, $this->rule->getPlugin()->apply($this->new_order));
+    $this->orderOne->setIpAddress($ip_address);
+    $this->orderOne->save();
+    $this->assertEquals(TRUE, $this->rule->getPlugin()->apply($this->orderTwo));
   }
 
 }

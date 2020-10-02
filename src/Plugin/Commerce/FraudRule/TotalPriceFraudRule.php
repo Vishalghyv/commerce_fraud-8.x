@@ -8,12 +8,11 @@ use Drupal\commerce_order\Entity\OrderInterface;
 use Drupal\commerce_price\Price;
 
 /**
- * Provides the fraud rule.
+ * Provides the total price fraud rule.
  *
  * @CommerceFraudRule(
  *   id = "total_price",
- *   label = @Translation("Compare Total Price with Given Price"),
- *   description = @Translation("Checks Order Total Price"),
+ *   label = @Translation("Compare total price with given price"),
  * )
  */
 class TotalPriceFraudRule extends FraudRuleBase {

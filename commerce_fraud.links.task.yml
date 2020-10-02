@@ -14,3 +14,20 @@ entity.rules.delete_form:
   base_route:  entity.rules.canonical
   title: Delete
   weight: 10
+# Suspected order routing definition
+
+entity.suspected_order.canonical:
+  route_name: entity.suspected_order.canonical
+  base_route: entity.suspected_order.canonical
+  title: 'View'
+
+entity.suspected_order.edit_form:
+  route_name: entity.suspected_order.edit_form
+  base_route: entity.suspected_order.canonical
+  title: 'Edit'
+
+entity.suspected_order.delete_form:
+  route_name:  entity.suspected_order.delete_form
+  base_route:  entity.suspected_order.canonical
+  title: Delete
+  weight: 10

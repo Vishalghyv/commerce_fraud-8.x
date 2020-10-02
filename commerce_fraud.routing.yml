@@ -6,8 +6,16 @@ commerce_fraud.content:
   requirements:
     _permission: 'access content'
 
-commerce_fraud.settings:
+commerce_fraud.configuration:
   path: '/admin/commerce/config/commerce_fraud'
+  defaults:
+    _controller: '\Drupal\system\Controller\SystemController::systemAdminMenuBlockPage'
+    _title: 'Commerce Fraud'
+  requirements:
+    _permission: 'access commerce administration pages'
+
+commerce_fraud.settings:
+  path: '/admin/commerce/config/commerce_fraud/configuration'
   defaults:
     _form: '\Drupal\commerce_fraud\Form\CommerceFraudSettingsForm'
     _title: 'Commerce Fraud: Configuration'

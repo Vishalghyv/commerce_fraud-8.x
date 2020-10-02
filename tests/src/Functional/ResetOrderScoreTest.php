@@ -3,13 +3,9 @@
 namespace Drupal\Tests\commerce_fraud\Functional;
 
 use Drupal\Tests\commerce_order\Functional\OrderBrowserTestBase;
-use Drupal\commerce_order\Entity\Order;
-use Drupal\commerce_order\Entity\OrderItem;
-use Drupal\Tests\commerce_order\FunctionalJavascript\OrderWebDriverTestBase;
-use Drupal\Tests\BrowserTestBase;
 
 /**
- * Tests the commerce_order entity forms.
+ * Tests the reset order forms.
  *
  * @group commerce
  */
@@ -23,9 +19,7 @@ class ResetOrderScoreTest extends OrderBrowserTestBase {
   protected $order;
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritDoc}
    */
   public static $modules = [
     'commerce_fraud',
@@ -44,12 +38,9 @@ class ResetOrderScoreTest extends OrderBrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
-    parent::setUp();
+  protected function setUp(): void {
 
-    // $this->installEntitySchema('rules');
-    // $this->installConfig(['commerce_fraud']);
-    // $this->installSchema('commerce_fraud', ['commerce_fraud_fraud_score']);
+    parent::setUp();
 
     $order_item = $this->createEntity('commerce_order_item', [
       'type' => 'default',
@@ -58,6 +49,7 @@ class ResetOrderScoreTest extends OrderBrowserTestBase {
         'currency_code' => 'USD',
       ],
     ]);
+
     /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
     $this->order = $this->createEntity('commerce_order', [
       'type' => 'default',
@@ -70,18 +62,18 @@ class ResetOrderScoreTest extends OrderBrowserTestBase {
   }
 
   /**
-   * Tests deleting an order programaticaly and through the UI.
+   * Tests resetting an orders fraud score through the UI.
    */
   public function testResetOrder() {
-    // $this->drupalGet($this->order->toUrl('reset-fraud-score-form'));
-    $this->drupalGet('/admin/commerce/orders/'.$this->order->id().'/reset_fraud');
-    $this->assertSession()->pageTextContains(t("Do you want to reset order fraud score order -id: @id?", ['@id' => $this->order->id()]));
-    $this->assertSession()->pageTextContains(t("Reset this order's fraud score to 0"));
+
+    $this->drupalGet('/admin/commerce/orders/' . $this->order->id() . '/reset_fraud');
+    $this->assertSession()->pageTextContains("Do you want to reset order fraud score for order {$this->order->id()}?");
+    $this->assertSession()->pageTextContains("Reset this orders fraud score to 0");
     $this->submitForm([], 'Reset Fraud Score');
     $collection_url = $this->order->toUrl('collection', ['absolute' => TRUE]);
     $this->assertSession()->addressEquals($collection_url);
-    $this->assertSession()->pageTextContains(t('The order has been reseted.'));
-    
+    $this->assertSession()->pageTextContains('The orders score has been reset.');
+
   }
 
 }

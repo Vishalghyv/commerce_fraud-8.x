@@ -1,0 +1,220 @@
+diff --git a/src/EventSubscriber/CommerceFraudSubscriber.php b/src/EventSubscriber/CommerceFraudSubscriber.php
+index 1238b01..0c18c32 100644
+--- a/src/EventSubscriber/CommerceFraudSubscriber.php
++++ b/src/EventSubscriber/CommerceFraudSubscriber.php
+@@ -14,6 +14,7 @@ use Drupal\Core\Config\ConfigFactoryInterface;
+ use Drupal\Core\Mail\MailManagerInterface;
+ use Drupal\Core\Language\LanguageManagerInterface;
+ use Drupal\commerce_fraud\Entity\SuspectedOrder;
++use Drupal\commerce_payment\Event\PaymentEvent;
+ 
+ /**
+  * Event subscriber, that acts on the place transition of commerce order.
+@@ -137,10 +138,59 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
+   public static function getSubscribedEvents() {
+     $events = [
+       'commerce_order.place.pre_transition' => ['setFraudScore'],
++      'commerce_payment.commerce_payment.insert' => ['setPaymentScore'],
+     ];
+     return $events;
+   }
+ 
++  /**
++   * Sets Fraud Score based upon payment AVS response codes.
++   *
++   * @param \Drupal\commerce_payment\Event\PaymentEvent $event
++   *   The transition event.
++   */
++  public function setPaymentScore(PaymentEvent $event) {
++
++    $payment = $event->getPayment();
++
++    $order = $payment->getOrder();
++
++    $this->suspectedOrder = $this->suspectedOrderStorage->loadByProperties(['order_id' => $order->id()]);
++    $this->suspectedOrder = reset($this->suspectedOrder);
++
++    if (empty($this->suspectedOrder)) {
++      $this->suspectedOrder = SuspectedOrder::create([
++        'order_id' => $order->id(),
++        'rules' => [],
++      ]);
++    }
++    // Get rules.
++    $rules = $this->entityTypeManager->getStorage('rules')->loadMultiple();
++
++    // Apply rules to payment.
++    foreach ($rules as $rule) {
++      // Only payment rules to be checked.
++      if ($rule->getPlugin()->getLabel() != 'Compare order AVS code') {
++        continue;
++      }
++
++      if (!$rule->getPlugin()->applyPaymentRule($payment)) {
++        continue;
++      }
++
++      // Get the name set in the entity.
++      $rule_name = $rule->getPlugin()->getLabel();
++
++      // Add a log to order activity.
++      $this->logStorage->generate($order, 'fraud_rule_name', ['rule_name' => $rule_name])->save();
++
++      $this->suspectedOrder->addRule($rule);
++    }
++
++    $this->suspectedOrder->save();
++
++  }
++
+   /**
+    * Sets the Fraud score on placing the order.
+    *
+diff --git a/src/Plugin/Commerce/FraudRule/CheckAddressVerificationSystemFraudRule.php b/src/Plugin/Commerce/FraudRule/CheckAddressVerificationSystemFraudRule.php
+new file mode 100644
+index 0000000..d2f3c61
+--- /dev/null
++++ b/src/Plugin/Commerce/FraudRule/CheckAddressVerificationSystemFraudRule.php
+@@ -0,0 +1,142 @@
++<?php
++
++namespace Drupal\commerce_fraud\Plugin\Commerce\FraudRule;
++
++use Drupal\Core\Form\FormStateInterface;
++use Drupal\commerce_payment\CreditCard;
++use Drupal\commerce_payment\Entity\PaymentInterface;
++use Drupal\commerce_order\Entity\OrderInterface;
++
++/**
++ * Provides the fraud rule.
++ *
++ * @CommerceFraudRule(
++ *   id = "check_avs",
++ *   label = @Translation("Compare order AVS code"),
++ *   description = @Translation("Compares order AVS code"),
++ * )
++ */
++class CheckAddressVerificationSystemFraudRule extends FraudRuleBase {
++
++  /**
++   * {@inheritdoc}
++   */
++  public function defaultConfiguration() {
++    return [
++      'avs_codes' => [
++        'visa' => [],
++        'mastercard' => [],
++        'amex' => [],
++        'discover' => [],
++        'maestro' => [],
++      ],
++    ] + parent::defaultConfiguration();
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
++    $form += parent::buildConfigurationForm($form, $form_state);
++
++    $form['#type'] = 'container';
++    $form['#title'] = $this->t('AVS Code');
++    $form['#collapsible'] = FALSE;
++
++    $form['avs_code'] = [
++      '#type' => 'fieldset',
++      '#title' => $this->t('AVS Code'),
++      '#collapsible' => FALSE,
++    ];
++
++    $avs_code_meanings = CreditCard::getAvsResponseCodeMeanings();
++
++    $form['avs_code']['visa_codes'] = [
++      '#type' => 'select',
++      '#title' => $this->t('Visa Codes'),
++      '#options' => $avs_code_meanings['visa'],
++      '#multiple' => 1,
++      '#required' => 1,
++      '#default' => $this->configuration['avs_codes']['visa'],
++    ];
++    $form['avs_code']['mastercard_codes'] = [
++      '#type' => 'select',
++      '#title' => $this->t('Mastercard Codes'),
++      '#options' => $avs_code_meanings['mastercard'],
++      '#multiple' => 1,
++      '#required' => 1,
++      '#default' => $this->configuration['avs_codes']['mastercard'],
++    ];
++    $form['avs_code']['amex_codes'] = [
++      '#type' => 'select',
++      '#title' => $this->t('Amex Codes'),
++      '#options' => $avs_code_meanings['amex'],
++      '#multiple' => 1,
++      '#required' => 1,
++      '#default' => $this->configuration['avs_codes']['amex'],
++    ];
++    $form['avs_code']['discover_codes'] = [
++      '#type' => 'select',
++      '#title' => $this->t('Discover Codes'),
++      '#options' => $avs_code_meanings['discover'],
++      '#multiple' => 1,
++      '#required' => 1,
++      '#default' => $this->configuration['avs_codes']['discover'],
++    ];
++    $form['avs_code']['maestro_codes'] = [
++      '#type' => 'select',
++      '#title' => $this->t('Maestro Codes'),
++      '#options' => $avs_code_meanings['maestro'],
++      '#multiple' => 1,
++      '#required' => 1,
++      '#default' => $this->configuration['avs_codes']['maestro'],
++    ];
++
++    return $form;
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
++    parent::submitConfigurationForm($form, $form_state);
++
++    if (!$form_state->getErrors()) {
++      $values = $form_state->getValue($form['#parents']);
++      $this->configuration['avs_codes']['visa'] = $values['avs_code']['visa_codes'];
++      $this->configuration['avs_codes']['mastercard'] = $values['avs_code']['mastercard_codes'];
++      $this->configuration['avs_codes']['amex'] = $values['avs_code']['amex_codes'];
++      $this->configuration['avs_codes']['discover'] = $values['avs_code']['discover_codes'];
++      $this->configuration['avs_codes']['maestro'] = $values['avs_code']['maestro_codes'];
++    }
++
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  public function apply(OrderInterface $order) {
++    // Invalid application of rule.
++    return FALSE;
++
++  }
++
++  /**
++   * Checks payment AVS code response.
++   */
++  public function applyPaymentRule(PaymentInterface $payment) {
++    if (!$payment->getPaymentMethod() || !$payment->getAvsResponseCode()) {
++      return FALSE;
++    }
++    $card_type = $payment->getPaymentMethod()->getType();
++
++    $avs_response_code = $payment->getAvsResponseCode();
++
++    if (isset($this->configuration['avs_codes'][$card_type][$avs_response_code])) {
++      return TRUE;
++    }
++
++    return FALSE;
++  }
++
++}

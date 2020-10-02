@@ -40,5 +40,6 @@ commerce_fraud_rules_configuration:
       type: integer
       label: 'Quantity'
     product_conditions:
-      type: commerce_condition_configuration
-      label: 'Product Conditions'
+      type: sequence
+      sequence:
+        type: commerce_condition

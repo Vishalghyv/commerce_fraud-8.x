@@ -2,21 +2,42 @@
 
 namespace Drupal\commerce_fraud\EventSubscriber;
 
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\state_machine\Event\WorkflowTransitionEvent;
 use Drupal\Core\Messenger\MessengerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Drupal\commerce_order\Entity\OrderInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Drupal\commerce_fraud\Event\FraudEvents;
-use Drupal\commerce_fraud\Event\FraudEvent;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Database\Connection;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Mail\MailManagerInterface;
+use Drupal\Core\Language\LanguageManagerInterface;
+use Drupal\commerce_fraud\Entity\SuspectedOrder;
+use Drupal\commerce_payment\Event\PaymentEvent;
 
 /**
- * Event subscriber, that acts on the place transition of commerce order
- * entities, in order to set fraud score.
+ * Event subscriber, that acts on the place transition of commerce order.
+ *
+ * Used to apply commerce fraud rules and set fraud score.
  */
 class CommerceFraudSubscriber implements EventSubscriberInterface {
+
+  use StringTranslationTrait;
+
+  /**
+   * The entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
+   * The config factory.
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected $configFactory;
 
   /**
    * The event dispatcher service.
@@ -40,29 +61,75 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
   protected $messenger;
 
   /**
+   * The log storage.
+   *
+   * @var \Drupal\commerce_log\LogStorageInterface
+   */
+  protected $logStorage;
+
+  /**
+   * The suspected order storage.
+   *
+   * @var \Drupal\Core\Entity\ContentEntityStorageInterface
+   */
+  protected $suspectedOrderStorage;
+
+  /**
+   * The mail manager.
+   *
+   * @var \Drupal\Core\Mail\MailManagerInterface
+   */
+  protected $mailManager;
+
+  /**
+   * The current language code.
+   *
+   * @var string
+   */
+  protected $langcode;
+
+  /**
+   * Whether this order is suspected to be fraudulent.
+   *
+   * @var bool
+   */
+  protected $orderSuspectedFraudulent;
+
+  /**
+   * The suspected order entity for this order.
+   *
+   * @var \Drupal\commerce_fraud\Entity\SuspectedOrderInterface
+   */
+  protected $suspectedOrder;
+
+  /**
    * Constructs a new FraudSubscriber object.
    *
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager.
    * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $event_dispatcher
    *   The event dispatcher.
    * @param \Drupal\Core\Messenger\MessengerInterface $messenger
    *   The messenger.
    * @param \Drupal\Core\Database\Connection $connection
    *   The database connection to be used.
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   The factory for configuration objects.
+   * @param \Drupal\Core\Mail\MailManagerInterface $mail_manager
+   *   The mail manager.
+   * @param \Drupal\Core\Language\LanguageManagerInterface $language_manager
+   *   The language manager.
    */
-  public function __construct(EventDispatcherInterface $event_dispatcher, MessengerInterface $messenger, Connection $connection) {
+  public function __construct(EntityTypeManagerInterface $entity_type_manager, EventDispatcherInterface $event_dispatcher, MessengerInterface $messenger, Connection $connection, ConfigFactoryInterface $config_factory, MailManagerInterface $mail_manager, LanguageManagerInterface $language_manager) {
+    $this->entityTypeManager = $entity_type_manager;
     $this->eventDispatcher = $event_dispatcher;
     $this->connection = $connection;
+    $this->mailManager = $mail_manager;
     $this->messenger = $messenger;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container) {
-    return new static(
-      $container->get('event_dispatcher'),
-      $container->get('database')
-    );
+    $this->langcode = $language_manager->getCurrentLanguage()->getId();
+    $this->logStorage = $this->entityTypeManager->getStorage('commerce_log');
+    $this->suspectedOrderStorage = $this->entityTypeManager->getStorage('suspected_order');
+    $this->configFactory = $config_factory;
   }
 
   /**
@@ -71,8 +138,57 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
   public static function getSubscribedEvents() {
     $events = [
       'commerce_order.place.pre_transition' => ['setFraudScore'],
+      'commerce_payment.commerce_payment.insert' => ['setPaymentScore'],
     ];
     return $events;
+  }
+
+  /**
+   * Sets Fraud Score based upon payment AVS response codes.
+   *
+   * @param \Drupal\commerce_payment\Event\PaymentEvent $event
+   *   The transition event.
+   */
+  public function setPaymentScore(PaymentEvent $event) {
+
+    $payment = $event->getPayment();
+
+    $order = $payment->getOrder();
+
+    $this->suspectedOrder = $this->suspectedOrderStorage->loadByProperties(['order_id' => $order->id()]);
+    $this->suspectedOrder = reset($this->suspectedOrder);
+
+    if (empty($this->suspectedOrder)) {
+      $this->suspectedOrder = SuspectedOrder::create([
+        'order_id' => $order->id(),
+        'rules' => [],
+      ]);
+    }
+    // Get rules.
+    $rules = $this->entityTypeManager->getStorage('rules')->loadMultiple();
+
+    // Apply rules to payment.
+    foreach ($rules as $rule) {
+      // Only payment rules to be checked.
+      if ($rule->getPlugin()->getLabel() != 'Compare order AVS code') {
+        continue;
+      }
+
+      if (!$rule->getPlugin()->applyPaymentRule($payment)) {
+        continue;
+      }
+
+      // Get the name set in the entity.
+      $rule_name = $rule->getPlugin()->getLabel();
+
+      // Add a log to order activity.
+      $this->logStorage->generate($order, 'fraud_rule_name', ['rule_name' => $rule_name])->save();
+
+      $this->suspectedOrder->addRule($rule);
+    }
+
+    $this->suspectedOrder->save();
+
   }
 
   /**
@@ -82,15 +198,36 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
    *   The transition event.
    */
   public function setFraudScore(WorkflowTransitionEvent $event) {
+
+    $config = $this->configFactory->get('commerce_fraud.settings');
+
     /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
     // Get Order.
     $order = $event->getEntity();
 
-    // Get Rules.
-    $rules = \Drupal::entityTypeManager()->getStorage('rules');
+    $this->suspectedOrder = $this->suspectedOrderStorage->loadByProperties(['order_id' => $order->id()]);
+    $this->suspectedOrder = reset($this->suspectedOrder);
 
-    // Load Rules.
-    foreach ($rules->loadMultiple() as $rule) {
+    $this->orderSuspectedFraudulent = TRUE;
+
+    if (empty($this->suspectedOrder)) {
+      $this->suspectedOrder = SuspectedOrder::create([
+        'order_id' => $order->id(),
+        'rules' => [],
+      ]);
+      $this->orderSuspectedFraudulent = FALSE;
+    }
+
+    // Get Rules.
+    $rules = $this->entityTypeManager->getStorage('rules')->loadMultiple();
+
+    // Apply rules to order.
+    foreach ($rules as $rule) {
+
+      // Rule already applicable to order.
+      if ($this->suspectedOrder->hasRule($rule)) {
+        continue;
+      }
 
       // Apply the rule.
       // File contating apply function is plugin-fraud rule.
@@ -101,61 +238,64 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
         continue;
       }
 
-      // Get the score and name set in the entity.
-      $fraud_score = $rule->getScore();
-      $rule_name = $rule->getPLugin()->getLabel();
+      // Get the name set in the entity.
+      $rule_name = $rule->getPlugin()->getLabel();
 
       // Add a log to order activity.
-      $logStorage = \Drupal::entityTypeManager()->getStorage('commerce_log');
-      $logStorage->generate($order, 'fraud_rule_name', ['rule_name' => $rule_name])->save();
+      $this->logStorage->generate($order, 'fraud_rule_name', ['rule_name' => $rule_name])->save();
 
-      // Detail for Fraud Event.
-      $note = $rule_name . ": " . $fraud_score;
-      $event = new FraudEvent($fraud_score, $order->id(), $note);
+      $this->suspectedOrder->addRule($rule);
 
-      // Dispatch Fraud Event with inserting event.
-      $this->eventDispatcher->dispatch(FraudEvents::FRAUD_SCORE_INSERT, $event);
+      $this->orderSuspectedFraudulent = TRUE;
     }
 
-    // Calculating complete fraud score for the order.
-    $updated_fraud_score = $this->getFraudScore($order->id());
-
-    // Compare order fraud score with block list cap set in settings.
-    if ($updated_fraud_score <= \Drupal::state()->get('commerce_fraud_blocklist_cap', 20)) {
+    // No rule applicable to order.
+    if (!$this->orderSuspectedFraudulent) {
       return;
     }
 
+    // Order is suspected.
+    $this->suspectedOrder->save();
+
+    // Compare order fraud score with block list cap set in settings.
+    if ($this->suspectedOrder->getScore() <= $config->get('blocklist_cap')) {
+      return;
+    }
+
+    $orderStopped = FALSE;
+
     // Cancel order if set in settings.
-    if (\Drupal::state()->get('stop_order', FALSE)) {
+    if ($config->get('stop_order')) {
       $this->cancelFraudulentOrder($order);
+      $orderStopped = TRUE;
     }
 
     // Sending the details of the blocklisted order via mail.
-    $this->sendBlockListedOrderMail($order, $updated_fraud_score);
+    $this->sendBlockListedOrderMail($order, $orderStopped);
 
   }
 
   /**
-   * Returns the fraud score as per order id.
+   * Returns name of fraud rules that applied to a order.
    *
-   * @param int $order_id
-   *   Order Id.
-   *
-   * @return int
-   *   Fraud Score.
+   * @return array
+   *   The name of fraud rules that were applied on the order.
    */
-  public function getFraudScore(int $order_id) {
-    // Query to get all fraud score for order id.
-    $query = $this->connection->select('commerce_fraud_fraud_score');
-    $query->condition('order_id', $order_id);
-    $query->addExpression('SUM(fraud_score)', 'fraud');
-    $result = $query->execute()->fetchCol();
+  public function getFraudRulesNames() {
 
-    return $result[0] ?? 0;
+    $rule_names = [];
+    $rules = $this->suspectedOrder->getRules();
+
+    foreach ($rules as $rule) {
+
+      $rule_names[] = $rule->getPlugin()->getLabel()->render() . ": " . $rule->getScore();
+    }
+    return $rule_names;
+
   }
 
   /**
-   * Cancels the order and sets its status to fradulent.
+   * Cancels the order and sets its status to fraudulent.
    *
    * @param \Drupal\commerce_order\Entity\OrderInterface $order
    *   Order.
@@ -164,43 +304,37 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
     // Cancelling the order and setting the status to fraudulent.
     $order->getState()->applyTransitionById('cancel');
     $order->getState()->setValue(['value' => 'fraudulent']);
-    $logStorage = \Drupal::entityTypeManager()->getStorage('commerce_log');
 
     // Creating of log for the order and refreshing it on load.
-    $logStorage->generate($order, 'order_fraud')->save();
+    $this->logStorage->generate($order, 'order_fraud')->save();
     $order->setRefreshState(OrderInterface::REFRESH_ON_LOAD);
+    $this->messenger->addWarning($this->t('This order is suspected to be
+      fraudulent and cannot be completed. Contact the administrators for more
+      info and help.'));
   }
 
   /**
-   * Sends email about blocklisted orders to the email choosen un settings.
+   * Sends email about blocklisted orders to the email chosen in settings.
    *
    * @param \Drupal\commerce_order\Entity\OrderInterface $order
    *   Order.
-   * @param int $fraud_score
-   *   Fraud Score.
+   * @param bool $orderStopped
+   *   Whether order stopped from completing due to fraud score.
    */
-  public function sendBlockListedOrderMail(OrderInterface $order, int $fraud_score) {
-
-    $mailManager = \Drupal::service('plugin.manager.mail');
+  public function sendBlockListedOrderMail(OrderInterface $order, $orderStopped) {
 
     // Mail details.
     $module = 'commerce_fraud';
     $key = 'send_blocklist';
-    $to = \Drupal::state()->get('send_email', \Drupal::config('system.site')->get('mail'));
+    $to = $this->configFactory->get('commerce_fraud.settings')->get('send_email');
+
     // Mail message.
-    $params['message'] = $this->getMailMessage($order, $fraud_score);
+    $params['message'] = $this->getMailParamsForBlockList($order, $orderStopped);
     $params['order_id'] = $order->id();
-    $langcode = \Drupal::languageManager()->getDefaultLanguage()->getId();
     $send = TRUE;
 
-    $result = $mailManager->mail($module, $key, $to, $langcode, $params, NULL, $send);
+    $this->mailManager->mail($module, $key, $to, $this->langcode, $params, NULL, $send);
 
-    // Setting a message about the mail.
-    if ($result['result']) {
-      $this->messenger->addMessage(t('Message about the order has been sent.'));
-      return;
-    }
-    $this->messenger->addWarning(t('There was a problem sending message and it was not sent.'), MessengerInterface::TYPE_WARNING);
   }
 
   /**
@@ -208,20 +342,34 @@ class CommerceFraudSubscriber implements EventSubscriberInterface {
    *
    * @param \Drupal\commerce_order\Entity\OrderInterface $order
    *   Order.
-   * @param int $fraud_score
-   *   Fraud Score.
+   * @param bool $orderStopped
+   *   Whether order stopped from completing due to fraud score.
    *
-   * @return string[]
-   *   Message.
+   * @return array
+   *   Array of parameters for use in block listed mail.
+   *   Keyed as:
+   *   - site_name: Name of site.
+   *   - order_id: Order ID.
+   *   - user_id: User id
+   *   - user_name: User name.
+   *   - status: Current Order status.
+   *   - placed: When was the order placed in m/d/y format.
+   *   - fraud_score: Fraud score of order.
+   *   - stopped: Whether order stopped from completing due to fraud score
+   *   - fraud_notes: List of name of fraud rules that applied to order.
    */
-  public function getMailMessage(OrderInterface $order, int $fraud_score) {
-    $breakdown = '';
-    $breakdown .= '<br>Order With order Uid ' . $order->getCustomerId();
-    $breakdown .= '<br>Current order status is ' . $order->getState()->getId();
-    $breakdown .= '<br>This order was placed at ' . date('m/d/Y H:i:s', $order->getPlacedTime());
-    $breakdown .= '<br> With Ip address ' . $order->getIpAddress() . '<br>';
-    $breakdown .= '<br> With fraud score: ' . $fraud_score . '<br>';
-    return $breakdown;
+  public function getMailParamsForBlockList(OrderInterface $order, $orderStopped) {
+    return [
+      'site_name' => $this->configFactory->get('system.site')->get('name'),
+      'order_id' => $order->id(),
+      'user_id' => $order->getCustomerId(),
+      'user_name' => $order->getCustomer()->getDisplayName(),
+      'status' => $order->getState()->getId(),
+      'placed' => date('m/d/Y H:i:s', $order->getPlacedTime()),
+      'fraud_score' => $this->suspectedOrder->getScore(),
+      'stopped' => $orderStopped,
+      'fraud_notes' => $this->getFraudRulesNames(),
+    ];
   }
 
 }

@@ -16,7 +16,7 @@ interface RulesInterface extends ConfigEntityInterface, EntityWithPluginCollecti
    * Gets the rule score.
    *
    * @return string
-   *   The rule score.
+   *   Rule score.
    */
   public function getScore();
 
@@ -24,7 +24,7 @@ interface RulesInterface extends ConfigEntityInterface, EntityWithPluginCollecti
    * Sets the rule score.
    *
    * @param int $score
-   *   The rule score.
+   *   Rule score.
    *
    * @return $this
    */

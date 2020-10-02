@@ -8,9 +8,10 @@ use Drupal\Tests\commerce_order\Kernel\OrderKernelTestBase;
 use Drupal\user\Entity\User;
 
 /**
- * Tests actions source plugin.
+ * Tests the commerce fraud rule plugin.
  *
  * @coversDefaultClass \Drupal\commerce_fraud\Plugin\Commerce\FraudRule\AnonymousUserFraudRule
+ *
  * @group commerce
  */
 class AnonymousUserFraudRuleTest extends OrderKernelTestBase {
@@ -30,9 +31,7 @@ class AnonymousUserFraudRuleTest extends OrderKernelTestBase {
   protected $rule;
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritDoc}
    */
   public static $modules = [
     'commerce_fraud',
@@ -41,7 +40,8 @@ class AnonymousUserFraudRuleTest extends OrderKernelTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
+
     parent::setUp();
 
     $this->installEntitySchema('rules');
@@ -64,29 +64,27 @@ class AnonymousUserFraudRuleTest extends OrderKernelTestBase {
       'label' => 'ANONYMOUS',
       'status' => TRUE,
       'plugin' => 'anonymous_user',
-      'counter' => 9,
+      'score' => 9,
     ]);
 
     $this->rule->save();
+
   }
 
   /**
-   * Tests the non-applicable use case.
+   * Tests Anonymous user rule.
    *
    * @covers ::apply
    */
-  public function testNotApplicableRule() {
+  public function testAnonymousRule() {
+
+    // non-applicable use case.
     $this->assertEquals(FALSE, $this->rule->getPlugin()->apply($this->order));
-  }
 
-  /**
-   * Tests the applicable use case.
-   *
-   * @covers ::apply
-   */
-  public function testApplicableRule() {
+    // Applicable use case.
     $this->order->setCustomer(User::getAnonymousUser());
     $this->assertEquals(TRUE, $this->rule->getPlugin()->apply($this->order));
+
   }
 
 }

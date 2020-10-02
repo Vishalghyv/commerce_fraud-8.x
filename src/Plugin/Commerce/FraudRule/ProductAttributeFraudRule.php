@@ -5,8 +5,8 @@ namespace Drupal\commerce_fraud\Plugin\Commerce\FraudRule;
 use Drupal\commerce\ConditionGroup;
 use Drupal\commerce\ConditionManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\commerce_order\Entity\OrderInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Provides the infinite order number generator.
@@ -99,7 +99,6 @@ class ProductAttributeFraudRule extends FraudRuleBase {
 
     if (!$form_state->getErrors()) {
       $values = $form_state->getValue($form['#parents']);
-
       $this->configuration['product_conditions'] = $values['product']['conditions'];
     }
   }
@@ -138,7 +137,9 @@ class ProductAttributeFraudRule extends FraudRuleBase {
   }
 
   /**
-   * Evaluate conditions for each order item and Returns bool as per condition evaluation.
+   * Evaluate conditions for each order item.
+   *
+   * Returns bool as per condition evaluation.
    *
    * @param \Drupal\commerce_order\Entity\OrderItemInterface[] $order_items
    *   The order items.
@@ -150,7 +151,7 @@ class ProductAttributeFraudRule extends FraudRuleBase {
    */
   protected function evaluateConditions(array $order_items, ConditionGroup $conditions) {
 
-    foreach ($order_items as $index => $order_item) {
+    foreach ($order_items as $order_item) {
       if ($conditions->evaluate($order_item)) {
         return TRUE;
       }
